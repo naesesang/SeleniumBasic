@@ -40,6 +40,8 @@
   <ItemGroup>
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
@@ -53,9 +55,10 @@
     <Compile Update="Internal\ExceptionDialog.Designer.cs" DependentUpon="ExceptionDialog.cs" />
   </ItemGroup>
 
-  <!-- Copy bundled drivers next to the assembly when present in ..\References -->
+  <!-- Copy bundled drivers next to the assembly when present in ..\References.
+       Chrome, Edge and Firefox drivers are otherwise downloaded at runtime (Core\DriverManager.cs). -->
   <ItemGroup>
-    <DriverBinary Include="..\References\firefoxdriver.xpi;..\References\chromedriver.exe;..\References\operadriver.exe;..\References\iedriver.exe;..\References\iedriver64.exe;..\References\phantomjs.exe" />
+    <DriverBinary Include="..\References\chromedriver.exe;..\References\msedgedriver.exe;..\References\geckodriver.exe;..\References\iedriver.exe;..\References\iedriver64.exe" />
   </ItemGroup>
   <Target Name="CopyDriverBinaries" AfterTargets="Build">
     <Copy SourceFiles="@(DriverBinary)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="Exists('%(FullPath)')" />

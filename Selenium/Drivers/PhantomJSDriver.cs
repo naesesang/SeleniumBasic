@@ -50,14 +50,10 @@ namespace Selenium {
             : base(BROWSER_NAME) { }
 
         internal static IDriverService StartService(WebDriver wd) {
-            ExtendCapabilities(wd, false);
-
-            var svc = new DriverService();
-            svc.AddArgument("--webdriver=" + svc.IPEndPoint.ToString());
-            svc.AddArgument("--webdriver-loglevel=ERROR");
-            svc.AddArgument("--ignore-ssl-errors=true");
-            svc.Start("phantomjs.exe");
-            return svc;
+            // PhantomJS is discontinued and only speaks the legacy JSON Wire protocol.
+            // The class is kept so that existing VBA references still compile.
+            throw new SeleniumError("PhantomJS is no longer supported. Use ChromeDriver or EdgeDriver"
+                + " with AddArgument \"--headless=new\" for a headless browser.");
         }
 
         internal static void ExtendCapabilities(WebDriver wd, bool remote) {

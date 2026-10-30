@@ -58,7 +58,7 @@ namespace Selenium {
 
             var svc = new DriverService();
             svc.AddArgument("--port=" + svc.IPEndPoint.Port.ToString());
-            svc.Start("geckodriver.exe");
+            svc.Start(DriverManager.GetGeckoDriver());
             return svc;
         }
 

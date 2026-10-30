@@ -53,13 +53,8 @@ namespace Selenium {
             : base(BROWSER_NAME) { }
 
         internal static IDriverService StartService(WebDriver wd) {
-            ExtendCapabilities(wd, false);
-
-            var svc = new DriverService();
-            svc.AddArgument("--port=" + svc.IPEndPoint.Port.ToString());
-            svc.AddArgument("--silent");
-            svc.Start("operadriver.exe");
-            return svc;
+            // The class is kept so that existing VBA references still compile.
+            throw new SeleniumError("Opera is no longer supported. Use ChromeDriver or EdgeDriver.");
         }
 
         internal static void ExtendCapabilities(WebDriver wd, bool remote) {

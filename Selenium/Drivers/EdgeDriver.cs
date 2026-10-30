@@ -62,7 +62,7 @@ namespace Selenium {
             var svc = new DriverService();
             svc.AddArgument("--port=" + svc.IPEndPoint.Port.ToString());
             svc.AddArgument("--silent");
-            svc.Start("msedgedriver.exe");
+            svc.Start(DriverManager.GetEdgeDriver(wd.Binary));
             return svc;
         }
 
