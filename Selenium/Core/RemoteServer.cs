@@ -38,6 +38,15 @@ namespace Selenium.Core {
                 }
             }
             ServicePointManager.Expect100Continue = false;
+            EnableTls12();
+        }
+
+        /// <summary>
+        /// The default protocols depend on the target framework of the host process.
+        /// Excel or wscript run with the .NET 4.0 defaults (SSL3/TLS1.0), rejected by most servers.
+        /// </summary>
+        internal static void EnableTls12() {
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
         }
 
         /// <summary>

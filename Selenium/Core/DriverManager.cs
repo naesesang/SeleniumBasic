@@ -317,6 +317,7 @@ namespace Selenium.Core {
         }
 
         private static HttpWebRequest CreateRequest(string url) {
+            RemoteServer.EnableTls12();
             var request = (HttpWebRequest)WebRequest.Create(url);
             request.UserAgent = "SeleniumBasic";  // required by the GitHub API
             request.Timeout = DOWNLOAD_TIMEOUT;
