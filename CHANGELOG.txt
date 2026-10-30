@@ -7,13 +7,29 @@ Third party softwares:
  https://github.com/SeleniumHQ/selenium
  
  Chrome driver - New BSD License
- https://sites.google.com/a/chromium.org/chromedriver
- 
- Opera driver - Creative Commons Attribution 3.0 Unported license
- https://github.com/operasoftware/operachromiumdriver
- 
- PhantomJs web stack - BSD license
- http://phantomjs.org/
+ https://developer.chrome.com/docs/chromedriver
+
+ Microsoft Edge driver - Microsoft
+ https://developer.microsoft.com/microsoft-edge/tools/webdriver
+
+ Gecko driver - Mozilla Public License 2.0
+ https://github.com/mozilla/geckodriver
+
+
+v3.0.0.0  (2026/10/30)
+===============================================================================
+ * Requires the .NET Framework 4.8 (was 3.5)
+ * Uses the W3C WebDriver protocol (the JSON Wire protocol is no longer supported by the drivers)
+ * Downloads the driver matching the installed Chrome or Edge, and geckodriver for Firefox,
+   into %LOCALAPPDATA%\SeleniumBasic\drivers. The drivers are no longer installed.
+ * Edge uses the Chromium driver (msedgedriver.exe)
+ * Firefox uses geckodriver. The profile given to SetProfile is used in place, not copied.
+ * Removed PhantomJS and Opera. The classes remain, but Start raises an error.
+ * Removed the Internet Explorer driver and its registry tweaks from the installer
+ * Removed the Selenium IDE add-on for Firefox
+ * Removed the .exe.config files written in the system and Office folders
+ * Added the errors ElementClickInterceptedError and InvalidArgumentError
+ * Fixed switching back to the main window after SwitchToWindowByName
 
 
 v2.0.9.0  (2016/03/02)

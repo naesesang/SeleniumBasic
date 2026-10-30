@@ -1,16 +1,16 @@
 {
- Code generated at each build by gen-registration.ipy
+ Code generated at each build by build-setup.ps1
  This is a subset of SeleniumBasicSetup.iss
 }
 
 lib.Guid := '{0277FC34-FD1B-4616-BB19-A9AABCAF2A70}';
-lib.FullName := 'Selenium, Version=2.0.9.0, Culture=neutral, PublicKeyToken=d499ab7f7ba4d827';
+lib.FullName := 'Selenium, Version=3.0.0.0, Culture=neutral, PublicKeyToken=d499ab7f7ba4d827';
 lib.Description := 'Selenium Type Library';
 lib.TypeVersion := '2.0';
 lib.PathDll := ExpandConstant('{app}\Selenium.dll');
 lib.PathTlb32 := ExpandConstant('{app}\Selenium32.tlb');
 lib.PathTlb64 := ExpandConstant('{app}\Selenium64.tlb');
-lib.Runtime := 'v2.0.50727';
+lib.Runtime := 'v4.0.30319';
 
 RegTypeLib(lib);
 
