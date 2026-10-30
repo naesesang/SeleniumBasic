@@ -43,6 +43,6 @@ using Selenium.Internal;
 [assembly: NeutralResourcesLanguage("en-US")]
 
 #if Test
-[assembly: InternalsVisibleTo("Selenium.Tests")]
+[assembly: InternalsVisibleTo("Selenium.Tests, PublicKey=002400000480000094000000060200000024000052534131000400000100010075a5d2badf198e134e8de829c4b9a74c1a81f041f327b4c3cf7d4835d9a8936f22dc2cdf7dc657207a279f16b02b62e74959458344fcb1079f9f5b4043f57dba684b6a524723dfc502b682c5982e71cf0edf359ac598d6555ad219d9a1554ce60620f509f4218c368f59b7796734c9a68bfb0277397414a7aa95c297b05b8d9a")]
 #endif
 

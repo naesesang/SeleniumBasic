@@ -10,4 +10,5 @@ Xlbin
 *.pyc
 *.user
 *.xlt
-*.xls
+*.xls.vs
+
