@@ -30,6 +30,16 @@ v3.0.0.0  (2026/10/30)
  * Removed the .exe.config files written in the system and Office folders
  * Added the errors ElementClickInterceptedError and InvalidArgumentError
  * Fixed switching back to the main window after SwitchToWindowByName
+ * Enables TLS 1.2 for the driver downloads and remote servers (Excel and wscript
+   default to SSL3/TLS1.0)
+
+ Known issue - runtime error -2146234341 (8013101B) "Automation error" in Excel:
+   Excel requests the .NET 2.0 runtime at startup. If a macro creates a .NET 2.0 COM
+   object before Selenium in the same Excel session, for example
+   CreateObject("System.Collections.ArrayList"), CreateObject("System.Text.StringBuilder")
+   or CreateObject("System.Security.Cryptography.SHA256Managed"), .NET 2.0 is loaded
+   and Selenium (.NET 4.8) can no longer be created until Excel is restarted.
+   Replace these objects with Collection, Scripting.Dictionary or native code.
 
 
 v2.0.9.0  (2016/03/02)
