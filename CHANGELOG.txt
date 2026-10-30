@@ -33,13 +33,16 @@ v3.0.0.0  (2026/10/30)
  * Enables TLS 1.2 for the driver downloads and remote servers (Excel and wscript
    default to SSL3/TLS1.0)
 
- Known issue - runtime error -2146234341 (8013101B) "Automation error" in Excel:
-   Excel requests the .NET 2.0 runtime at startup. If a macro creates a .NET 2.0 COM
-   object before Selenium in the same Excel session, for example
-   CreateObject("System.Collections.ArrayList"), CreateObject("System.Text.StringBuilder")
-   or CreateObject("System.Security.Cryptography.SHA256Managed"), .NET 2.0 is loaded
-   and Selenium (.NET 4.8) can no longer be created until Excel is restarted.
-   Replace these objects with Collection, Scripting.Dictionary or native code.
+ * Added an opt-in diagnostic log: create an empty %LOCALAPPDATA%\SeleniumBasic\debug.log
+   to record the assemblies loaded and the exceptions raised in the host process (Excel...)
+
+ Troubleshooting - runtime error -2146234341 (8013101B) or -2146234304 (80131040)
+ "Automation error" when creating a driver:
+   The COM registration still describes the 2.0.9 library (RuntimeVersion v2.0.50727,
+   Assembly Selenium 2.0.9.0) while Selenium.dll is the 3.0 one. It happens when the setup
+   was run from a virtualized process, such as a terminal inside an MSIX-packaged app,
+   whose registry writes are kept private to that app. Close Excel and run the setup
+   again from Explorer.
 
 
 v2.0.9.0  (2016/03/02)

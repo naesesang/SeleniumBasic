@@ -10,6 +10,7 @@ namespace Selenium.Core {
         private static Thread _thread = null;
 
         public static void Initialize() {
+            DiagnosticLog.Initialize();
             if (_callback != null)
                 return;
 
