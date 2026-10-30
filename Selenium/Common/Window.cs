@@ -23,7 +23,7 @@ namespace Selenium {
     public class Window : ComInterfaces._Window {
 
         internal static string GetWindowHandle(RemoteSession session) {
-            return (string)session.Send(RequestMethod.GET, "/window_handle");
+            return (string)session.Send(RequestMethod.GET, "/window");
         }
 
         private readonly RemoteSession _session;
@@ -39,10 +39,12 @@ namespace Selenium {
                 _hash = handle.GetHashCode();
         }
 
+        /// <summary>
+        /// The W3C protocol only manages the current window, so this window is activated first.
+        /// </summary>
         private string uri() {
-            if (_windows.CurrentWindow == this)
-                return "/window/current";
-            return "/window/" + _handle;
+            _windows.ActivateWindow(this);
+            return "/window";
         }
 
         /// <summary>
@@ -142,7 +144,7 @@ namespace Selenium {
         /// </summary>
         /// <remarks>When setting this property, it should act as the JavaScript window.moveTo() method.</remarks>
         public Point Position() {
-            var result = (Dictionary)_session.Send(RequestMethod.GET, uri() + "/position");
+            var result = (Dictionary)_session.Send(RequestMethod.GET, uri() + "/rect");
             return new Point(result);
         }
 
@@ -152,7 +154,7 @@ namespace Selenium {
         /// <param name="x">X</param>
         /// <param name="y">Y</param>
         public void SetPosition(int x, int y) {
-            _session.Send(RequestMethod.POST, uri() + "/position", "x", x, "y", y);
+            _session.Send(RequestMethod.POST, uri() + "/rect", "x", x, "y", y);
         }
 
         /// <summary>
@@ -160,7 +162,7 @@ namespace Selenium {
         /// </summary>
         /// <remarks>When setting this property, it should act as the JavaScript window.resizeTo() method.</remarks>
         public Size Size() {
-            var dict = (Dictionary)_session.Send(RequestMethod.GET, uri() + "/size");
+            var dict = (Dictionary)_session.Send(RequestMethod.GET, uri() + "/rect");
             return new Size(dict);
         }
 
@@ -170,7 +172,7 @@ namespace Selenium {
         /// <param name="width"></param>
         /// <param name="height"></param>
         public void SetSize(int width, int height) {
-            _session.Send(RequestMethod.POST, uri() + "/size", "width", width, "height", height);
+            _session.Send(RequestMethod.POST, uri() + "/rect", "width", width, "height", height);
         }
 
         /// <summary>

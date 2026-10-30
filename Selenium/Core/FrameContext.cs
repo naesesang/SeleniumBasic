@@ -26,13 +26,8 @@ namespace Selenium.Core {
             if (identifier == null)
                 throw new Errors.ArgumentError("Invalid type for argument identifier");
 
-            var element = identifier as WebElement;
-            if (element != null) {
-                identifier = element.SerializeJson();
-            }
-
             try {
-                _session.Send(RequestMethod.POST, "/frame", "id", identifier);
+                SendSwitchToFrame(identifier);
             } catch (Errors.NoSuchFrameError) {
                 if (timeout == 0)
                     throw;
@@ -40,7 +35,7 @@ namespace Selenium.Core {
                 while (true) {
                     SysWaiter.Wait();
                     try {
-                        _session.SendAgain();
+                        SendSwitchToFrame(identifier);
                         break;
                     } catch (Errors.NoSuchFrameError) {
                         if (DateTime.UtcNow > endTime)
@@ -48,6 +43,28 @@ namespace Selenium.Core {
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// The W3C protocol only accepts an index or an element, so a name or id
+        /// is first resolved to the frame element.
+        /// </summary>
+        private void SendSwitchToFrame(object identifier) {
+            var element = identifier as WebElement;
+            var name = identifier as string;
+            if (name != null) {
+                string css = "frame[name=" + By.CssQuote(name) + "],iframe[name=" + By.CssQuote(name) + "]"
+                    + ",frame[id=" + By.CssQuote(name) + "],iframe[id=" + By.CssQuote(name) + "]";
+                var locator = By.FormatLocator(Strategy.Css, css);
+                List frames = (List)_session.Send(RequestMethod.POST, "/elements", locator);
+                if (frames.Count == 0)
+                    throw new Errors.NoSuchFrameError(name);
+                element = new WebElement(_session, (Dictionary)frames[0]);
+            }
+            if (element != null) {
+                identifier = element.SerializeJson();
+            }
+            _session.Send(RequestMethod.POST, "/frame", "id", identifier);
         }
 
         /// <summary>

@@ -26,7 +26,7 @@ namespace Selenium {
         internal static Alert SwitchToAlert(RemoteSession session, int timeout) {
             string text;
             try {
-                text = (string)session.Send(RequestMethod.GET, "/alert_text");
+                text = (string)session.Send(RequestMethod.GET, "/alert/text");
             } catch (Errors.NoAlertPresentError) {
                 if (timeout == 0)
                     throw;
@@ -67,14 +67,14 @@ namespace Selenium {
         /// Dismisses the alert.
         /// </summary>
         public void Dismiss() {
-            _session.Send(RequestMethod.POST, "/dismiss_alert");
+            _session.Send(RequestMethod.POST, "/alert/dismiss");
         }
 
         /// <summary>
         /// Accepts the alert.
         /// </summary>
         public void Accept() {
-            _session.Send(RequestMethod.POST, "/accept_alert");
+            _session.Send(RequestMethod.POST, "/alert/accept");
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Selenium {
         /// </summary>
         /// <param name="keysToSend"></param>
         public void SendKeys(string keysToSend) {
-            _session.Send(RequestMethod.POST, "/alert_text", "text", keysToSend);
+            _session.Send(RequestMethod.POST, "/alert/text", "text", keysToSend);
         }
 
         /// <summary>

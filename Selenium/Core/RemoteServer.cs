@@ -86,9 +86,8 @@ namespace Selenium.Core {
             //Serialise the parameters
             JSON data = null;
             if (method == RequestMethod.POST) {
-                if (param != null) {
-                    data = JSON.Serialize(param);
-                }
+                // W3C remote ends require a JSON body, even an empty one
+                data = JSON.Serialize(param ?? new Dictionary());
             }
 
             //adds the server url
@@ -149,23 +148,37 @@ namespace Selenium.Core {
             }
 
             if (responseDict != null) {
-                //Evaluate the status and error
-                int statusCode = (int)responseDict["status"];
-                if (statusCode != 0) {
-                    object errorObject = responseDict["value"];
-                    Dictionary errorAsDict = errorObject as Dictionary;
-                    string errorMessage;
-                    if (errorAsDict != null) {
-                        errorMessage = errorAsDict["message"] as string;
-                    } else {
-                        errorMessage = errorObject as string;
-                    }
-                    SeleniumError error = Errors.WebRequestError.Select(statusCode, errorMessage);
+                SeleniumError error = ParseError(responseDict);
+                if (error != null) {
                     error.ResponseData = responseDict;
                     throw error;
                 }
             }
             return responseDict;
+        }
+
+        /// <summary>
+        /// Returns the error described by a response, or null if the response is a success.
+        /// W3C errors are {"value":{"error":"no such element","message":"..."}},
+        /// legacy JSON Wire errors are {"status":7,"value":{"message":"..."}}.
+        /// </summary>
+        private static SeleniumError ParseError(Dictionary responseDict) {
+            object errorObject = responseDict.Get("value", null);
+            Dictionary errorAsDict = errorObject as Dictionary;
+
+            string errorName;
+            if (errorAsDict != null && errorAsDict.TryGetValue("error", out errorName)) {
+                return Errors.WebRequestError.Select(errorName, errorAsDict.Get("message", null) as string);
+            }
+
+            object status = responseDict.Get("status", null);
+            if (status is int && (int)status != 0) {
+                string errorMessage = errorAsDict != null
+                    ? errorAsDict.Get("message", null) as string
+                    : errorObject as string;
+                return Errors.WebRequestError.Select((int)status, errorMessage);
+            }
+            return null;
         }
 
         private HttpWebRequest CreateHttpWebRequest(RequestMethod method, string url, JSON data) {

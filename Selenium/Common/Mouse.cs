@@ -25,7 +25,8 @@ namespace Selenium {
         /// </summary>
         /// <param name="element">Opaque ID assigned to the element to move to, as described in the WebElement JSON Object. If not specified or is null, the offset is relative to current position of the mouse.</param>
         public Mouse moveTo(WebElement element) {
-            _session.Send(RequestMethod.POST, "/moveto", "element", element.Id);
+            ScrollIntoViewIfNeeded(element);
+            W3CActions.PerformPointer(_session, W3CActions.PointerMove(element.SerializeJson(), 0, 0));
             return this;
         }
 
@@ -36,15 +37,19 @@ namespace Selenium {
         /// <param name="xoffset">{number} X offset to move to, relative to the top-left corner of the element. If not specified, the mouse will move to the middle of the element.</param>
         /// <param name="yoffset"> {number} Y offset to move to, relative to the top-left corner of the element. If not specified, the mouse will move to the middle of the element.</param>
         public Mouse MoveTo(WebElement element, int xoffset = 0, int yoffset = 0) {
-            var data = new Dictionary();
-            if (element != null)
-                data.Add("element", element.Id);
-
-            if (xoffset != 0 || yoffset != 0) {
-                data.Add("xoffset", xoffset);
-                data.Add("yoffset", yoffset);
+            Dictionary move;
+            if (element == null) {
+                move = W3CActions.PointerMove("pointer", xoffset, yoffset);
+            } else if (xoffset == 0 && yoffset == 0) {
+                return moveTo(element);
+            } else {
+                // The W3C offsets are relative to the center of the element, not its top-left corner
+                ScrollIntoViewIfNeeded(element);
+                var size = element.Size();
+                move = W3CActions.PointerMove(element.SerializeJson()
+                    , xoffset - size.Width / 2, yoffset - size.Height / 2);
             }
-            _session.Send(RequestMethod.POST, "/moveto", data);
+            W3CActions.PerformPointer(_session, move);
             return this;
         }
 
@@ -53,7 +58,8 @@ namespace Selenium {
         /// </summary>
         /// <param name="button">{number} Which button, enum: {LEFT = 0, MIDDLE = 1 , RIGHT = 2}. Defaults to the left mouse button if not specified.</param>
         public Mouse Click(MouseButton button = MouseButton.Left) {
-            _session.Send(RequestMethod.POST, "/click", "button", (int)button);
+            W3CActions.PerformPointer(_session
+                , W3CActions.PointerDown(button), W3CActions.PointerUp(button));
             return this;
         }
 
@@ -62,7 +68,7 @@ namespace Selenium {
         /// </summary>
         /// <param name="button">{number} Which button, enum: {LEFT = 0, MIDDLE = 1 , RIGHT = 2}. Defaults to the left mouse button if not specified.</param>
         public Mouse ClickAndHold(MouseButton button = MouseButton.Left) {
-            _session.Send(RequestMethod.POST, "/buttondown", "button", (int)button);
+            W3CActions.PerformPointer(_session, W3CActions.PointerDown(button));
             return this;
         }
 
@@ -71,7 +77,7 @@ namespace Selenium {
         /// </summary>
         /// <param name="button">{number} Which button, enum: {LEFT = 0, MIDDLE = 1 , RIGHT = 2}. Defaults to the left mouse button if not specified.</param>
         public Mouse Release(MouseButton button = MouseButton.Left) {
-            _session.Send(RequestMethod.POST, "/buttonup", "button", (int)button);
+            W3CActions.PerformPointer(_session, W3CActions.PointerUp(button));
             return this;
         }
 
@@ -79,8 +85,21 @@ namespace Selenium {
         /// Double-clicks at the current mouse coordinates (set by moveto).
         /// </summary>
         public Mouse ClickDouble() {
-            _session.Send(RequestMethod.POST, "/doubleclick");
+            W3CActions.PerformPointer(_session
+                , W3CActions.PointerDown(MouseButton.Left), W3CActions.PointerUp(MouseButton.Left)
+                , W3CActions.PointerDown(MouseButton.Left), W3CActions.PointerUp(MouseButton.Left));
             return this;
+        }
+
+        /// <summary>
+        /// The legacy moveto scrolled the element into view, a W3C pointer move fails instead.
+        /// </summary>
+        private void ScrollIntoViewIfNeeded(WebElement element) {
+            _session.javascript.Execute(
+                "var e=arguments[0],r=e.getBoundingClientRect();"
+                + "if(r.bottom<0||r.right<0||r.top>=innerHeight||r.left>=innerWidth)"
+                + "e.scrollIntoView({block:'center',inline:'center'});"
+                , new[] { element }, false);
         }
 
     }

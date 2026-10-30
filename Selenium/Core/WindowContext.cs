@@ -8,16 +8,40 @@ namespace Selenium.Core {
         #region Static
 
         internal static List GetWindowsHandles(RemoteSession session) {
-            return (List)session.Send(RequestMethod.GET, "/window_handles");
+            return (List)session.Send(RequestMethod.GET, "/window/handles");
         }
 
         internal static string GetCurrentTitle(RemoteSession session) {
             return (string)session.Send(RequestMethod.GET, "/title");
         }
 
-        internal static string ActivateWindow(RemoteSession session, string name) {
-            session.Send(RequestMethod.POST, "/window", "name", name);
-            return (string)session.Send(RequestMethod.GET, "/window_handle");
+        internal static string ActivateWindow(RemoteSession session, string handle) {
+            session.Send(RequestMethod.POST, "/window", "handle", handle);
+            return handle;
+        }
+
+        /// <summary>
+        /// Activates the window with the given handle or, since the W3C protocol
+        /// only switches by handle, the window with the given name (window.name).
+        /// </summary>
+        internal static string ActivateWindowByName(RemoteSession session, string name) {
+            try {
+                return ActivateWindow(session, name);
+            } catch (Errors.NoSuchWindowError) { }
+
+            string current = null;
+            try {
+                current = Window.GetWindowHandle(session);
+            } catch (Errors.NoSuchWindowError) { }
+
+            foreach (string handle in GetWindowsHandles(session)) {
+                ActivateWindow(session, handle);
+                if (name == session.javascript.Execute("return window.name;", null, false) as string)
+                    return handle;
+            }
+            if (current != null)
+                ActivateWindow(session, current);
+            throw new Errors.NoSuchWindowError(name);
         }
 
         #endregion
@@ -96,10 +120,12 @@ namespace Selenium.Core {
         /// <param name="name">The name of the window</param>
         /// <param name="timeout"></param>
         public Window SwitchToWindowByName(string name, int timeout = -1) {
+            // Resolve the handle of the current window before leaving it, it's fetched lazily
+            string currentHandle = _currentWindow.Handle;
             var endTime = _session.GetEndTime(timeout);
             while (true) {
                 try {
-                    string handle = WindowContext.ActivateWindow(_session, name);
+                    string handle = WindowContext.ActivateWindowByName(_session, name);
                     _previousWindow = _currentWindow;
                     foreach (Window win in _cachedWindows) {
                         if (win.Handle == handle) {
@@ -107,7 +133,7 @@ namespace Selenium.Core {
                             return _currentWindow;
                         }
                     }
-                    _currentWindow = new Window(_session, this, null);
+                    _currentWindow = new Window(_session, this, handle);
                     _cachedWindows.Add(_currentWindow);
                     return _currentWindow;
                 } catch (Errors.NoSuchWindowError) { }

@@ -45,16 +45,28 @@ namespace Selenium.Core {
         /// <param name="requiredCapabilities">An object describing the session's required capabilities (Optional).</param>
         /// <returns>{object} An object describing the session's capabilities.</returns>
         public void Start(Dictionary desired_capabilities, Dictionary requiredCapabilities = null) {
+            var w3c_capabilities = new Dictionary();
+            w3c_capabilities.Add("alwaysMatch", W3CCapabilities.FromLegacy(desired_capabilities));
+
             var param = new Dictionary();
+            param.Add("capabilities", w3c_capabilities);
+            // Still sent for remote ends and cloud providers reading the legacy capabilities
             param.Add("desiredCapabilities", desired_capabilities);
             if (requiredCapabilities != null)
                 param.Add("requiredCapabilities", requiredCapabilities);
 
             var response = (Dictionary)server.Send(RequestMethod.POST, "/session", param);
             try {
-                _id = (string)response["sessionId"];
+                // W3C: {"value":{"sessionId":..,"capabilities":{..}}}
+                // Legacy: {"sessionId":..,"status":0,"value":{..}}
+                var value = (Dictionary)response["value"];
+                if (value.TryGetValue("sessionId", out _id)) {
+                    this.capabilities = (Dictionary)value["capabilities"];
+                } else {
+                    _id = (string)response["sessionId"];
+                    this.capabilities = value;
+                }
                 _uri = "/session/" + _id;
-                this.capabilities = (Dictionary)response["value"];
             } catch (Errors.KeyNotFoundError ex) {
                 throw new DeserializeException(typeof(RemoteSession), ex);
             }

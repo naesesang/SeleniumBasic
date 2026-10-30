@@ -23,14 +23,23 @@ namespace Selenium {
         /// Returns the element with focus, or BODY if nothing has focus.
         /// </summary>
         internal static WebElement GetActiveWebElement(RemoteSession session) {
-            var result = (Dictionary)session.Send(RequestMethod.POST, "/element/active");
+            var result = (Dictionary)session.Send(RequestMethod.GET, "/element/active");
             return new WebElement(session, result);
         }
 
+        /// <summary>
+        /// Key identifying a web element reference in the W3C protocol.
+        /// </summary>
+        internal const string ELEMENT_KEY = "element-6066-11e4-a52e-4f735466cecf";
+
+        /// <summary>
+        /// Key identifying a web element reference in the legacy JSON Wire protocol.
+        /// </summary>
+        internal const string ELEMENT_KEY_LEGACY = "ELEMENT";
+
         internal static bool TryParse(Dictionary dict, out string id) {
-            return dict.TryGetValue("ELEMENT", out id);
-            //TODO: Change the key once implemented on the server side
-            //return dict.TryGetValue("ELEMENT-6066-11e4-a52e-4f735466cecf", out id);
+            return dict.TryGetValue(ELEMENT_KEY, out id)
+                || dict.TryGetValue(ELEMENT_KEY_LEGACY, out id);
         }
 
 
@@ -65,9 +74,8 @@ namespace Selenium {
         /// <returns></returns>
         public Dictionary SerializeJson() {
             var dict = new Dictionary();
-            dict.Add("ELEMENT", this.Id);
-            //TODO: Change the key once implemented on the server side
-            //dict.Add("ELEMENT-6066-11e4-a52e-4f735466cecf", id);
+            dict.Add(ELEMENT_KEY, this.Id);
+            dict.Add(ELEMENT_KEY_LEGACY, this.Id);
             return dict;
         }
 
@@ -125,7 +133,7 @@ namespace Selenium {
         /// </summary>
         /// <returns>Point</returns>
         public Point Location() {
-            var dict = (Dictionary)Send(RequestMethod.GET, "/location");
+            var dict = (Dictionary)Send(RequestMethod.GET, "/rect");
             return new Point(dict);
         }
 
@@ -133,7 +141,10 @@ namespace Selenium {
         /// Gets the location of an element relative to the origin of the view port.
         /// </summary>
         public Point LocationInView() {
-            var dict = (Dictionary)Send(RequestMethod.GET, "/location_in_view");
+            var dict = (Dictionary)_session.javascript.Execute(
+                "var e=arguments[0];e.scrollIntoView(false);"
+                + "var r=e.getBoundingClientRect();return {x:r.left,y:r.top};"
+                , new[] { this }, false);
             return new Point(dict);
         }
 
@@ -141,7 +152,7 @@ namespace Selenium {
         /// Returns the size of the element
         /// </summary>
         public Size Size() {
-            var dict = (Dictionary)Send(RequestMethod.GET, "/size");
+            var dict = (Dictionary)Send(RequestMethod.GET, "/rect");
             return new Size(dict);
         }
 
@@ -150,8 +161,7 @@ namespace Selenium {
         /// </summary>
         public object Rect {
             get {
-                var dict = (Dictionary)Send(RequestMethod.GET, "/rect");
-                return null;
+                return (Dictionary)Send(RequestMethod.GET, "/rect");
             }
         }
 
@@ -184,7 +194,13 @@ namespace Selenium {
         /// <param name="attribute">Attribute name</param>
         /// <returns>Attribute</returns>
         public object Attribute(string attribute) {
-            var value = Send(RequestMethod.GET, "/attribute/" + attribute);
+            // Like the legacy getAttribute: the DOM property when it has a simple value,
+            // the HTML attribute otherwise, and "true"/null for boolean properties.
+            var value = Send(RequestMethod.GET, "/property/" + attribute);
+            if (value is bool)
+                return (bool)value ? "true" : null;
+            if (value == null || value is Dictionary || value is List)
+                value = Send(RequestMethod.GET, "/attribute/" + attribute);
             return value;
         }
 
@@ -203,7 +219,7 @@ namespace Selenium {
         /// </summary>
         /// <returns></returns>
         public object Value() {
-            var value = Send(RequestMethod.GET, "/attribute/value");
+            var value = Send(RequestMethod.GET, "/property/value");
             return value;
         }
 
@@ -216,27 +232,7 @@ namespace Selenium {
             if (delayms != 0)
                 SysWaiter.Wait(delayms);
 
-            if(_session.capabilities.GetValue("takesElementScreenshot", false)){
-                return (Image)Send(RequestMethod.GET, "/screenshot");
-            }
-
-            var dict = (Dictionary)_session.javascript.Execute(
-                "return arguments[0].getBoundingClientRect();", new[] { this }, false);
-
-            int left = Convert.ToInt32(dict["left"]);
-            int top = Convert.ToInt32(dict["top"]);
-            int width = Convert.ToInt32(dict["width"]);
-            int height = Convert.ToInt32(dict["height"]);
-            var rect = new System.Drawing.Rectangle(left, top, width, height);
-
-            using (Image image = (Image)_session.Send(RequestMethod.GET, "/screenshot")) {
-                var bitmap = image.GetBitmap();
-                if (rect.Right > bitmap.Width || rect.Bottom > bitmap.Height)
-                    throw new SeleniumError("Element outside of the screenshot.");
-
-                var bmpCrop = bitmap.Clone(rect, bitmap.PixelFormat);
-                return new Image(bmpCrop);
-            }
+            return (Image)Send(RequestMethod.GET, "/screenshot");
         }
 
         /// <summary>
@@ -247,7 +243,8 @@ namespace Selenium {
         public bool Equals(WebElement other) {
             if (Id == other.Id)
                 return true;
-            return (bool)Send(RequestMethod.GET, "/equals/" + other.Id);
+            return (bool)_session.javascript.Execute(
+                "return arguments[0]===arguments[1];", new[] { this, other }, false);
         }
 
         #endregion
@@ -371,7 +368,7 @@ namespace Selenium {
             if (!_session.IsLocal && text.IndexOf(":/") != -1 && File.Exists(text)) {
                 text = _session.UploadFile(text);
             }
-            Send(RequestMethod.POST, "/value", "value", new string[] { text });
+            Send(RequestMethod.POST, "/value", "text", text);
             return this;
         }
 
@@ -379,7 +376,13 @@ namespace Selenium {
         /// Submits a form.
         /// </summary>
         public void Submit() {
-            Send(RequestMethod.POST, "/submit");
+            // No submit command in the W3C protocol: submit the parent form from the page
+            _session.javascript.Execute(
+                "var f=arguments[0];while(f&&f.tagName!='FORM')f=f.parentNode;"
+                + "if(!f)throw Error('Unable to find the parent form');"
+                + "var e=document.createEvent('Event');e.initEvent('submit',true,true);"
+                + "if(f.dispatchEvent(e))HTMLFormElement.prototype.submit.call(f);"
+                , new[] { this }, false);
         }
 
         /// <summary>

@@ -108,6 +108,64 @@ namespace Selenium {
             throw new SeleniumException("Unknown strategy: {0}", strategy);
         }
 
+        /// <summary>
+        /// Returns the "using"/"value" parameters of a W3C find command.
+        /// The W3C protocol has no id, name or class name strategy, so these become CSS selectors.
+        /// </summary>
+        internal static Dictionary FormatLocator(Strategy strategy, string value) {
+            string method;
+            switch (strategy) {
+                case Strategy.Id:
+                    method = "css selector";
+                    value = "*[id=" + CssQuote(value) + "]";
+                    break;
+                case Strategy.Name:
+                    method = "css selector";
+                    value = "*[name=" + CssQuote(value) + "]";
+                    break;
+                case Strategy.Class:
+                    method = "css selector";
+                    var names = value.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+                    value = names.Length == 0 ? "." : "." + string.Join(".", Array.ConvertAll(names, CssEscape));
+                    break;
+                default:
+                    method = FormatStrategy(strategy);
+                    break;
+            }
+            var locator = new Dictionary();
+            locator.Add("using", method);
+            locator.Add("value", value);
+            return locator;
+        }
+
+        /// <summary>
+        /// Returns the value as a double quoted CSS string.
+        /// </summary>
+        internal static string CssQuote(string value) {
+            return "\"" + value.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
+        }
+
+        /// <summary>
+        /// Escapes a CSS identifier (https://drafts.csswg.org/cssom/#serialize-an-identifier).
+        /// </summary>
+        internal static string CssEscape(string ident) {
+            var sb = new System.Text.StringBuilder(ident.Length + 8);
+            for (int i = 0; i < ident.Length; i++) {
+                char c = ident[i];
+                bool leadingDigit = char.IsDigit(c) && (i == 0 || (i == 1 && ident[0] == '-'));
+                if (c == 0) {
+                    sb.Append('�');
+                } else if (c < 0x20 || c == 0x7F || leadingDigit) {
+                    sb.Append('\\').Append(((int)c).ToString("x")).Append(' ');
+                } else if (c >= 0x80 || c == '-' || c == '_' || char.IsLetterOrDigit(c)) {
+                    sb.Append(c);
+                } else {
+                    sb.Append('\\').Append(c);
+                }
+            }
+            return sb.ToString();
+        }
+
         internal static Strategy ParseStrategy(string strategy) {
             switch (strategy.Remove(' ').ToLower()) {
                 case "class": return Strategy.Class;

@@ -51,8 +51,6 @@
     <None Include="ComInterfaces\_IME.cs;Common\IME.cs;Internal\HotKeyGlobalLL.cs;Internal\FolderCache.cs" />
     <Compile Update="Internal\ExceptionDialog.cs" SubType="Form" />
     <Compile Update="Internal\ExceptionDialog.Designer.cs" DependentUpon="ExceptionDialog.cs" />
-    <None Remove="Core\FirefoxPrefs.js" />
-    <EmbeddedResource Include="Core\FirefoxPrefs.js" />
   </ItemGroup>
 
   <!-- Copy bundled drivers next to the assembly when present in ..\References -->

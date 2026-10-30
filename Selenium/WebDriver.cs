@@ -252,6 +252,9 @@ namespace Selenium {
                 _session = new RemoteSession(_service.Uri, true, this.timeouts);
                 _session.Start(this.Capabilities);
 
+                if (browser == "firefox")
+                    FirefoxDriver.InstallExtensions(this, _session);
+
                 if (!string.IsNullOrEmpty(baseUrl))
                     this.BaseUrl = baseUrl;
             } catch (SeleniumException) {
@@ -307,6 +310,9 @@ namespace Selenium {
                 _session = new RemoteSession(executorUri, false, this.timeouts);
                 _session.Start(this.Capabilities);
 
+                if (browser == "firefox")
+                    FirefoxDriver.InstallExtensions(this, _session);
+
                 RegisterRunningObject();
 
             } catch (SeleniumException) {
@@ -323,8 +329,7 @@ namespace Selenium {
             if (_session != null) {
                 try {
                     if (_session.IsLocal) {
-                        if (!(_service is FirefoxService))
-                            _session.Delete();
+                        _session.Delete();
                         _service.Quit(_session.server);
                     } else {
                         _session.Delete();
@@ -542,7 +547,7 @@ namespace Selenium {
 
             if (timeout > 0){
                 session.timeouts.PageLoad = timeout;
-                session.Send(RequestMethod.POST, "/timeouts", "type", "page load", "ms", timeout);
+                session.Send(RequestMethod.POST, "/timeouts", "pageLoad", timeout);
             }
 
             int idx = url.IndexOf("/");

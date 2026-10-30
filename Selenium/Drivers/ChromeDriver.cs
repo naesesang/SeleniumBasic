@@ -69,10 +69,20 @@ namespace Selenium {
             if (!capa.TryGetValue("chromeOptions", out opts))
                 capa["chromeOptions"] = opts = new Dictionary();
 
-            capa.TryMove("debuggerAddress", opts);
+            ExtendChromiumOptions(wd, opts, remote, @"\Google\Chrome\Profiles\");
+
+            capa.SetDefault("download.directory_upgrade", true);
+            capa.SetDefault("download.prompt_for_download", false);
+        }
+
+        /// <summary>
+        /// Fills the options shared by the Chromium based browsers (Chrome, Edge).
+        /// </summary>
+        internal static void ExtendChromiumOptions(WebDriver wd, Dictionary opts, bool remote, string profilesFolder) {
+            wd.Capabilities.TryMove("debuggerAddress", opts);
 
             if (wd.Profile != null)
-                wd.Arguments.Add("user-data-dir=" + ExpandProfile(wd.Profile, remote));
+                wd.Arguments.Add("user-data-dir=" + ExpandProfile(wd.Profile, remote, profilesFolder));
 
             if (wd.Arguments.Count != 0)
                 opts["args"] = wd.Arguments;
@@ -85,17 +95,14 @@ namespace Selenium {
 
             if (wd.Binary != null)
                 opts["binary"] = wd.Binary;
-
-            capa.SetDefault("download.directory_upgrade", true);
-            capa.SetDefault("download.prompt_for_download", false);
         }
 
-        private static string ExpandProfile(string profile, bool remote) {
+        private static string ExpandProfile(string profile, bool remote, string profilesFolder) {
             if (!remote) {
                 if (IOExt.IsPath(profile)) {
                     profile = IOExt.ExpandPath(profile);
                 } else {
-                    profile = IOExt.AppDataFolder + @"\Google\Chrome\Profiles\" + profile;
+                    profile = IOExt.AppDataFolder + profilesFolder + profile;
                 }
                 Directory.CreateDirectory(profile);
             }

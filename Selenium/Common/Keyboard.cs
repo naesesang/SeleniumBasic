@@ -14,16 +14,20 @@ namespace Selenium {
     [ComVisible(true), ClassInterface(ClassInterfaceType.None)]
     public class Keyboard : ComInterfaces._Keyboard {
 
+        const char KEY_NULL = '\xE000';
         const char KEY_SHIFT = '\xE008';
         const char KEY_ALT = '\xE009';
         const char KEY_CTRL = '\xE00A';
+        const char KEY_META = '\xE03D';
 
         private RemoteSession _session;
         private Keys _keys;
+        private readonly System.Collections.Generic.List<char> _pressedModifiers;
 
         internal Keyboard(RemoteSession session) {
             _session = session;
             _keys = new Keys();
+            _pressedModifiers = new System.Collections.Generic.List<char>(4);
         }
 
         /// <summary>
@@ -44,8 +48,32 @@ namespace Selenium {
         public Keyboard SendKeys(string keysOrModifiers, string keys = null) {
             if (keys != null)
                 keysOrModifiers = string.Concat(keysOrModifiers, keys, keysOrModifiers);
-            _session.Send(RequestMethod.POST, "/keys", "value", new string[] { keysOrModifiers });
-            //_session.Send(RequestMethod.POST, "/keys", "value", keysOrModifiers.ToCharArray() );
+
+            // Like the legacy /keys command: a modifier key toggles its state
+            // and the NULL key releases all the pressed modifiers.
+            var actions = new List();
+            for (int i = 0; i < keysOrModifiers.Length; i++) {
+                char c = keysOrModifiers[i];
+                if (c == KEY_NULL) {
+                    foreach (char modifier in _pressedModifiers)
+                        actions.Add(W3CActions.KeyUp(modifier.ToString()));
+                    _pressedModifiers.Clear();
+                } else if (IsModifier(c)) {
+                    if (_pressedModifiers.Remove(c)) {
+                        actions.Add(W3CActions.KeyUp(c.ToString()));
+                    } else {
+                        _pressedModifiers.Add(c);
+                        actions.Add(W3CActions.KeyDown(c.ToString()));
+                    }
+                } else {
+                    string key = c.ToString();
+                    if (char.IsHighSurrogate(c) && i + 1 < keysOrModifiers.Length)
+                        key += keysOrModifiers[++i];
+                    actions.Add(W3CActions.KeyDown(key));
+                    actions.Add(W3CActions.KeyUp(key));
+                }
+            }
+            W3CActions.PerformKeys(_session, actions);
             return this;
         }
 
@@ -56,7 +84,13 @@ namespace Selenium {
         /// <returns>Self</returns>
         public Keyboard KeyDown(string modifierKeys) {
             check_keys_are_modifiers(modifierKeys);
-            _session.Send(RequestMethod.POST, "/keys", "value", new string[] { modifierKeys });
+            var actions = new List();
+            foreach (char key in modifierKeys) {
+                if (!_pressedModifiers.Contains(key))
+                    _pressedModifiers.Add(key);
+                actions.Add(W3CActions.KeyDown(key.ToString()));
+            }
+            W3CActions.PerformKeys(_session, actions);
             return this;
         }
 
@@ -67,12 +101,21 @@ namespace Selenium {
         /// <returns>Self</returns>
         public Keyboard KeyUp(string modifierKeys) {
             check_keys_are_modifiers(modifierKeys);
-            _session.Send(RequestMethod.POST, "/keys", "value", new string[] { modifierKeys });
+            var actions = new List();
+            foreach (char key in modifierKeys) {
+                _pressedModifiers.Remove(key);
+                actions.Add(W3CActions.KeyUp(key.ToString()));
+            }
+            W3CActions.PerformKeys(_session, actions);
             return this;
         }
 
 
         #region private support methods
+
+        private static bool IsModifier(char key) {
+            return key == KEY_SHIFT || key == KEY_ALT || key == KEY_CTRL || key == KEY_META;
+        }
 
         private void check_keys_are_modifiers(string keys) {
             foreach (char key in keys) {

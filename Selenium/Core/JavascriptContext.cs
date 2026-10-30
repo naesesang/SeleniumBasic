@@ -23,7 +23,7 @@ namespace Selenium.Core {
         /// <param name="unbox">Optional - Converts web elements to objects</param>
         /// <returns></returns>
         public object Execute(string script, object arguments = null, bool unbox = true) {
-            object result = this.session.Send(RequestMethod.POST, "/execute", "script", script, "args", arguments);
+            object result = this.session.Send(RequestMethod.POST, "/execute/sync", "script", script, "args", FormatArguments(arguments));
             if (unbox)
                 return Unbox(result);
             return result;
@@ -44,7 +44,7 @@ namespace Selenium.Core {
 
             string script_ex = "var callback=arguments[--arguments.length];" + script;
 
-            object result = this.session.Send(RequestMethod.POST, "/execute_async", "script", script_ex, "args", arguments);
+            object result = this.session.Send(RequestMethod.POST, "/execute/async", "script", script_ex, "args", FormatArguments(arguments));
             if (unbox)
                 return Unbox(result);
             return result;
@@ -71,8 +71,19 @@ namespace Selenium.Core {
                 + "};"
                 + "tst();";
 
-            object result = this.session.Send(RequestMethod.POST, "/execute_async", "script", script_ex, "args", arguments);
+            object result = this.session.Send(RequestMethod.POST, "/execute/async", "script", script_ex, "args", FormatArguments(arguments));
             return Unbox(result);
+        }
+
+        /// <summary>
+        /// The W3C protocol requires the arguments to be an array.
+        /// </summary>
+        private static object FormatArguments(object arguments) {
+            if (arguments == null)
+                return new object[0];
+            if (arguments is string || arguments is Dictionary || !(arguments is IEnumerable))
+                return new object[] { arguments };
+            return arguments;
         }
 
         internal object Unbox(object value) {

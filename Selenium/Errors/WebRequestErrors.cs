@@ -48,6 +48,40 @@ namespace Selenium.Errors {
             }
         }
 
+        /// <summary>
+        /// Maps a W3C WebDriver error code to the matching error.
+        /// </summary>
+        internal static SeleniumError Select(string errorName, string message) {
+            switch (errorName) {
+                case "element click intercepted": return new Errors.ElementClickInterceptedError(message);
+                case "element not interactable": return new Errors.ElementNotVisibleError(message);
+                case "insecure certificate": return new Errors.UnknownError(message);
+                case "invalid argument": return new Errors.InvalidArgumentError(message);
+                case "invalid cookie domain": return new Errors.InvalidCookieDomainError(message);
+                case "invalid element state": return new Errors.InvalidElementStateError(message);
+                case "invalid selector": return new Errors.InvalidSelectorError(message);
+                case "invalid session id": return new Errors.NoSuchDriverError(message);
+                case "javascript error": return new Errors.JavaScriptError(message);
+                case "move target out of bounds": return new Errors.MoveTargetOutOfBoundsError(message);
+                case "no such alert": return new Errors.NoAlertPresentError(message);
+                case "no such cookie": return new Errors.NoSuchCookieError(message);
+                case "no such element": return new Errors.NoSuchElementError(message);
+                case "no such frame": return new Errors.NoSuchFrameError(message);
+                case "no such window": return new Errors.NoSuchWindowError(message);
+                case "script timeout": return new Errors.ScriptTimeoutError(message);
+                case "session not created": return new Errors.SessionNotCreatedError(message);
+                case "stale element reference": return new Errors.StaleElementReferenceError(message);
+                case "timeout": return new Errors.TimeoutError(message ?? "Operation timed out.");
+                case "unable to set cookie": return new Errors.UnableToSetCookieError(message);
+                case "unexpected alert open": return new Errors.UnexpectedAlertOpenError(message);
+                case "unknown command":
+                case "unknown method":
+                case "unsupported operation": return new Errors.UnknownCommandError(message);
+                case "unknown error": return new Errors.UnknownError(message);
+                default: return new SeleniumError(message ?? errorName);
+            }
+        }
+
     }
 
 
@@ -271,7 +305,23 @@ namespace Selenium.Errors {
 
 
     /// <summary>
-    /// 
+    ///
+    /// </summary>
+    public class InvalidArgumentError : WebRequestError {
+        internal InvalidArgumentError(string message = null)
+            : base(61, message ?? "The arguments passed to a command are either invalid or malformed.") { }
+    }
+
+    /// <summary>
+    ///
+    /// </summary>
+    public class ElementClickInterceptedError : WebRequestError {
+        internal ElementClickInterceptedError(string message = null)
+            : base(64, message ?? "The element could not be clicked because another element obscures it.") { }
+    }
+
+    /// <summary>
+    ///
     /// </summary>
     public class BrowserNotStartedError : WebRequestError {
         internal BrowserNotStartedError()

@@ -60,9 +60,9 @@ namespace Selenium {
             ExtendCapabilities(wd, false);
 
             var svc = new DriverService();
-            svc.AddArgument("--host=localhost");
             svc.AddArgument("--port=" + svc.IPEndPoint.Port.ToString());
-            svc.Start("edgedriver.exe", true);
+            svc.AddArgument("--silent");
+            svc.Start("msedgedriver.exe");
             return svc;
         }
 
@@ -73,6 +73,7 @@ namespace Selenium {
             if (!capa.TryGetValue("edgeOptions", out opts))
                 capa["edgeOptions"] = opts = new Dictionary();
 
+            ChromeDriver.ExtendChromiumOptions(wd, opts, remote, @"\Microsoft\Edge\Profiles\");
         }
 
     }

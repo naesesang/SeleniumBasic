@@ -297,8 +297,7 @@ namespace Selenium {
             string relativeUri = this.uri + "/element";
             Dictionary element;
             try {
-                string method = By.FormatStrategy(strategy);
-                element = (Dictionary)session.Send(RequestMethod.POST, relativeUri, "using", method, "value", value);
+                element = (Dictionary)session.Send(RequestMethod.POST, relativeUri, By.FormatLocator(strategy, value));
             } catch (Errors.NoSuchElementError) {
                 if (timeout == 0)
                     throw;
@@ -327,9 +326,8 @@ namespace Selenium {
                     if (by == null)
                         break;
                     try {
-                        string method = By.FormatStrategy(by.Strategy);
-                        string value = by.Value.ToString();
-                        element = (Dictionary)session.Send(RequestMethod.POST, relativeUri, "using", method, "value", value);
+                        var locator = By.FormatLocator(by.Strategy, by.Value.ToString());
+                        element = (Dictionary)session.Send(RequestMethod.POST, relativeUri, locator);
                         return new WebElement(session, element);
                     } catch (Errors.NoSuchElementError) { }
                 }
@@ -346,9 +344,9 @@ namespace Selenium {
             RemoteSession session = this.session;
             string uri = this.uri + "/elements";
             try {
-                var method = By.FormatStrategy(strategy);
+                var locator = By.FormatLocator(strategy, value);
                 List elements = session.SendUntil(timeout,
-                    () => (List)session.Send(RequestMethod.POST, uri, "using", method, "value", value),
+                    () => (List)session.Send(RequestMethod.POST, uri, locator),
                     (r) => r.Count >= minimum
                 );
                 return new WebElements(session, elements);
@@ -366,9 +364,8 @@ namespace Selenium {
                 foreach (By by in (By[])byAny.Value) {
                     if (by == null)
                         break;
-                    var method = By.FormatStrategy(by.Strategy);
-                    var value = (string)by.Value;
-                    List elements = (List)session.Send(RequestMethod.POST, uri, "using", method, "value", value);
+                    var locator = By.FormatLocator(by.Strategy, (string)by.Value);
+                    List elements = (List)session.Send(RequestMethod.POST, uri, locator);
                     webelements.Add(session, elements);
                 }
                 if (webelements.Count >= minimum)
@@ -385,10 +382,10 @@ namespace Selenium {
         private void WaitElementNotPresent(Strategy strategy, string value, int timeout) {
             RemoteSession session = this.session;
             string uri = this.uri + "/element";
-            string method = By.FormatStrategy(strategy);
+            var locator = By.FormatLocator(strategy, value);
             DateTime endTime = session.GetEndTime(timeout);
             try {
-                session.Send(RequestMethod.POST, uri, "using", method, "value", value);
+                session.Send(RequestMethod.POST, uri, locator);
                 while (true) {
                     SysWaiter.Wait();
                     session.SendAgain();
@@ -409,9 +406,8 @@ namespace Selenium {
                 if (by == null)
                     break;
                 try {
-                    string method = By.FormatStrategy(by.Strategy);
-                    string value = by.Value.ToString();
-                    session.Send(RequestMethod.POST, uri, "using", method, "value", value);
+                    var locator = By.FormatLocator(by.Strategy, by.Value.ToString());
+                    session.Send(RequestMethod.POST, uri, locator);
                     while (true) {
                         if (DateTime.UtcNow > endTime)
                             throw new Errors.ElementPresentError(byAny);

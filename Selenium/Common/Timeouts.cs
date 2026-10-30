@@ -20,15 +20,15 @@ namespace Selenium {
     public class Timeouts : ComInterfaces._Timeouts {
 
         private static void SendTimeoutScript(RemoteSession session, int timeout) {
-            session.Send(RequestMethod.POST, "/timeouts", "type", "script", "ms", timeout);
+            session.Send(RequestMethod.POST, "/timeouts", "script", timeout);
         }
 
         private static void SendTimeoutPageLoad(RemoteSession session, int timeout) {
-            session.Send(RequestMethod.POST, "/timeouts", "type", "page load", "ms", timeout);
+            session.Send(RequestMethod.POST, "/timeouts", "pageLoad", timeout);
         }
 
         private static void SendTimeoutImplicit(RemoteSession session, int timeout) {
-            session.Send(RequestMethod.POST, "/timeouts", "type", "implicit", "ms", timeout);
+            session.Send(RequestMethod.POST, "/timeouts", "implicit", timeout);
         }
 
 

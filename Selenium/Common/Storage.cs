@@ -20,7 +20,7 @@ namespace Selenium {
         }
 
         private readonly RemoteSession _session;
-        private readonly string _uri;
+        private readonly string _storage;
 
         /// <summary>
         /// </summary>
@@ -28,7 +28,8 @@ namespace Selenium {
         /// <param name="storageType"></param>
         internal Storage(RemoteSession session, StorageType storageType) {
             _session = session;
-            _uri = storageType == StorageType.LocalStorage ? "/local_storage" : "/session_storage";
+            // No storage command in the W3C protocol: the storage is accessed from the page
+            _storage = storageType == StorageType.LocalStorage ? "localStorage" : "sessionStorage";
         }
 
         /// <summary>
@@ -39,7 +40,7 @@ namespace Selenium {
         /// <returns>object</returns>
         public string this[string key] {
             get {
-                return (string)_session.Send(RequestMethod.GET, _uri + "/key/" + key);
+                return (string)Execute("return {0}.getItem(arguments[0]);", key);
             }
             set {
                 this.Set(key, value);
@@ -52,7 +53,7 @@ namespace Selenium {
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         public void Set(string key, string value) {
-            _session.Send(RequestMethod.POST, _uri, "key", key, "value", value);
+            Execute("{0}.setItem(arguments[0], arguments[1]);", key, value);
         }
 
         /// <summary>
@@ -60,7 +61,7 @@ namespace Selenium {
         /// </summary>
         /// <returns>The list of keys.</returns>
         public List Keys() {
-            return (List)_session.Send(RequestMethod.GET, _uri);
+            return (List)Execute("return Object.keys({0});");
         }
 
         /// <summary>
@@ -68,14 +69,14 @@ namespace Selenium {
         /// </summary>
         /// <returns>{number} The number of items in the storage.</returns>
         public int Count() {
-            return (int)_session.Send(RequestMethod.GET, _uri + "/size");
+            return Convert.ToInt32(Execute("return {0}.length;"));
         }
 
         /// <summary>
         /// Clear the storage.
         /// </summary>
         public void Clear() {
-            _session.Send(RequestMethod.DELETE, _uri);
+            Execute("{0}.clear();");
         }
 
         /// <summary>
@@ -83,7 +84,11 @@ namespace Selenium {
         /// </summary>
         /// <param name="key">Key of the item</param>
         public void Remove(string key) {
-            _session.Send(RequestMethod.DELETE, _uri + "/key/" + key);
+            Execute("{0}.removeItem(arguments[0]);", key);
+        }
+
+        private object Execute(string script, params object[] arguments) {
+            return _session.javascript.Execute(string.Format(script, _storage), arguments, false);
         }
 
     }
