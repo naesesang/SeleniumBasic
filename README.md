@@ -27,7 +27,7 @@ SeleniumBasic 2.0.9 stopped working with current browsers:
 2. Run `SeleniumBasic-3.0.0.0.exe` from the [Releases](https://github.com/naesesang/SeleniumBasic/releases/latest) page. No administrator rights are needed: it installs for the current user in `%LOCALAPPDATA%\SeleniumBasic` and replaces a previous 2.0.9 install.
 3. In the VBA editor, check *Tools > References > Selenium Type Library* (already checked in workbooks made with 2.0.9).
 
-The installer is not code-signed, so SmartScreen may show a warning ("More info" > "Run anyway").
+The installer is not code-signed, so SmartScreen may show a warning ("More info" > "Run anyway"). On PCs where Smart App Control is on, Windows blocks unsigned installers without that option.
 
 Requirements: Windows 10/11 with the .NET Framework 4.8 (built into Windows 10 1903+ and Windows 11), Chrome or Edge, and internet access on first use of each browser version.
 
@@ -38,7 +38,8 @@ Sub Example()
     Dim driver As New Selenium.ChromeDriver   ' or Selenium.EdgeDriver
     driver.Start
     driver.Get "https://www.example.com"
-    Debug.Print driver.FindElementByCss("h1").Text
+    Debug.Print driver.Title                  ' Example Domain
+    Debug.Print driver.FindElementByCss("p").Text
     driver.Quit
 End Sub
 ```
@@ -92,7 +93,7 @@ BSD 3-Clause, see [LICENSE.txt](LICENSE.txt). Original work copyright (c) 2015 f
 
 1. 엑셀과 Selenium을 쓰는 프로그램을 모두 닫습니다.
 2. [Releases](https://github.com/naesesang/SeleniumBasic/releases/latest)에서 `SeleniumBasic-3.0.0.0.exe`를 받아 실행합니다. 관리자 권한은 필요 없고, 기존 2.0.9는 자동으로 교체됩니다.
-3. 코드 서명이 없어 SmartScreen 경고가 뜰 수 있습니다. "추가 정보" > "실행"을 누르세요.
+3. 코드 서명이 없어 SmartScreen 경고가 뜰 수 있습니다. "추가 정보" > "실행"을 누르세요. 스마트 앱 컨트롤이 켜진 PC에서는 이 선택지 없이 차단됩니다.
 
 필요 환경: Windows 10/11 (.NET Framework 4.8 기본 포함), Chrome 또는 Edge, 처음 실행할 때 인터넷 연결.
 
