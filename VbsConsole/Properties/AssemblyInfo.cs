@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("ScriptRunner")]
 [assembly: AssemblyDescription("Vbs script runner")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Florent BREHERET")]
+[assembly: AssemblyCompany("naesesang")]
 [assembly: AssemblyProduct("ScriptRunner")]
-[assembly: AssemblyCopyright("Copyright © Florent BREHERET 2014")]
+[assembly: AssemblyCopyright("Copyright © Florent BREHERET 2014, naesesang 2026")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

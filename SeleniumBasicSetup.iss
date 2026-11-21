@@ -5,8 +5,8 @@
 #define AppName "Selenium"
 #define AppID "{{0277FC34-FD1B-4616-BB19-1FDB7381B291}"
 #define AppLongName "Selenium Basic"
-#define AppPublisher "Florent BREHERET"
-#define AppURL "https://github.com/florentbr/SeleniumBasic"
+#define AppPublisher "naesesang"
+#define AppURL "https://github.com/naesesang/SeleniumBasic"
 #define AppFolder "SeleniumBasic"
 #define AppSetupFilename "SeleniumBasic-" + ASSEMBLY_VERSION
 

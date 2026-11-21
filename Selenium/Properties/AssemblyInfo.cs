@@ -11,10 +11,10 @@ using Selenium.Internal;
 [assembly: AssemblyTitle("Selenium .Net/COM binding")]
 [assembly: AssemblyDescription("Selenium Type Library")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Florent BREHERET")]
+[assembly: AssemblyCompany("naesesang")]
 [assembly: AssemblyProduct("SeleniumBasic")]
-[assembly: AssemblyCopyright("")]
-[assembly: AssemblyURL(@"https://github.com/florentbr/SeleniumBasic")]
+[assembly: AssemblyCopyright("Copyright (c) 2015 florentbr, (c) 2026 naesesang")]
+[assembly: AssemblyURL(@"https://github.com/naesesang/SeleniumBasic")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

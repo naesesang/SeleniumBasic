@@ -1,5 +1,5 @@
-Author : Florent BREHERET
-Website : https://github.com/florentbr/SeleniumBasic
+Original author : Florent BREHERET (https://github.com/florentbr/SeleniumBasic)
+Maintained by   : naesesang (https://github.com/naesesang/SeleniumBasic)
 
 Third party softwares:
  
