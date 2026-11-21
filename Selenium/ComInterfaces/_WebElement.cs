@@ -237,6 +237,75 @@ namespace Selenium.ComInterfaces {
         [DispId(8500), Description("Returns the shadow root of the element (Shadow DOM), to find the elements inside it.")]
         ShadowRoot ShadowRoot(int timeout = -1, bool raise = true);
 
+        [DispId(8510), Description("Parent element, or Nothing for the root element.")]
+        WebElement Parent { get; }
+
+        [DispId(8511), Description("Child elements.")]
+        WebElements Children();
+
+        [DispId(8520), Description("Sets an HTML attribute of the element.")]
+        void SetAttribute(string name, string value);
+
+        [DispId(8521), Description("Removes an HTML attribute of the element.")]
+        void RemoveAttribute(string name);
+
+        [DispId(8522), Description("Returns True when the element has the HTML attribute.")]
+        bool HasAttribute(string name);
+
+        [DispId(8523), Description("Returns a JavaScript property of the element (ex: value, checked), without falling back to the attribute.")]
+        object Property(string name);
+
+        [DispId(8524), Description("Returns an HTML attribute as written in the page, without falling back to the property.")]
+        object DomAttribute(string name);
+
+        [DispId(8530), Description("Gives the focus to the element.")]
+        void Focus();
+
+        [DispId(8531), Description("True when the element has the focus.")]
+        bool HasFocus { get; }
+
+        [DispId(8532), Description("Accessible name of the element, as read by a screen reader.")]
+        string AriaLabel { get; }
+
+        [DispId(8533), Description("Accessible role of the element (ex: button, link, textbox).")]
+        string AriaRole { get; }
+
+        [DispId(8540), Description("Highlights the element with a colored outline.")]
+        void Highlight(string color = "red");
+
+        [DispId(8541), Description("Removes the highlight of the element.")]
+        void Unhighlight();
+
+        [DispId(8550), Description("Selects files in a file input. Accepts several paths or an array.")]
+        void UploadFile([MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_VARIANT)] params object[] filePaths);
+
+        [DispId(8551), Description("Downloads the resource of the element (src, href) with the browser's cookies. Returns the path of the file.")]
+        string DownloadResource(string path = null, int timeout = 60000);
+
+        [DispId(8560), Description("Scrolls the content of the element to the top.")]
+        void ScrollToTop();
+
+        [DispId(8561), Description("Scrolls the content of the element to the bottom.")]
+        void ScrollToBottom();
+
+        [DispId(8562), Description("Scrolls the content of the element to a position in pixels.")]
+        void ScrollTo(int x, int y);
+
+        [DispId(8563), Description("Scrolls the content of the element by an offset in pixels.")]
+        void ScrollBy(int x, int y);
+
+        [DispId(8564), Description("Scrolls the content of the element down until no more content loads. Returns the number of scrolls that loaded content.")]
+        int ScrollUntilEnd(int maxScrolls = 100, int pause = 1000);
+
+        [DispId(8565), Description("Height of the content of the element in pixels.")]
+        int ScrollHeight { get; }
+
+        [DispId(8566), Description("Width of the content of the element in pixels.")]
+        int ScrollWidth { get; }
+
+        [DispId(8567), Description("Waits until the content of the element did not change for idleTime ms.")]
+        void WaitForDomIdle(int idleTime = 500, int timeout = 30000);
+
         [DispId(8400), Description("Cast the WebElement to a Table element")]
         TableElement AsTable();
 

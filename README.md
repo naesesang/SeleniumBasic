@@ -1,4 +1,4 @@
-# SeleniumBasic 3.1
+# SeleniumBasic 3.2
 
 Browser automation for VBA (Excel, Access, Word), VBScript and VB.Net that works with **current Chrome and Edge**.
 
@@ -21,12 +21,12 @@ SeleniumBasic 2.0.9 stopped working with current browsers:
 - **W3C WebDriver protocol.**
 - **Your existing VBA code keeps working.** The type library is unchanged, so the "Selenium Type Library" reference and code such as `New Selenium.ChromeDriver` stay the same.
 
-3.1 adds what current sites often need: **Shadow DOM**, **download folder and waiting for downloads**, and **saving a page as PDF**. See [New in 3.1](#new-in-31).
+3.1 and 3.2 add what current sites often need: Shadow DOM, downloads, PDF, waiting for the network, infinite scroll, tabs, cookies saved to a file, DevTools commands and more. See [New in 3.2](#new-in-32) and [New in 3.1](#new-in-31).
 
 ## Install
 
 1. Close Excel, Word and any script using Selenium.
-2. Run `SeleniumBasic-3.1.0.0.exe` from the [Releases](https://github.com/naesesang/SeleniumBasic/releases/latest) page. No administrator rights are needed: it installs for the current user in `%LOCALAPPDATA%\SeleniumBasic` and replaces a previous 2.0.9 or 3.0 install.
+2. Run `SeleniumBasic-3.2.0.0.exe` from the [Releases](https://github.com/naesesang/SeleniumBasic/releases/latest) page. No administrator rights are needed: it installs for the current user in `%LOCALAPPDATA%\SeleniumBasic` and replaces a previous 2.0.9 or 3.x install.
 3. In the VBA editor, check *Tools > References > Selenium Type Library* (already checked in workbooks made with 2.0.9).
 
 The installer is not code-signed, so SmartScreen may show a warning ("More info" > "Run anyway"). On PCs where Smart App Control is on, Windows blocks unsigned installers without that option.
@@ -47,6 +47,48 @@ End Sub
 ```
 
 More examples are in [Examples](Examples).
+
+## New in 3.2
+
+```vba
+Dim driver As New Selenium.ChromeDriver
+driver.SetHeadless                              ' options: call before Start
+driver.HideAutomationInfo
+driver.Start
+
+driver.Get "https://example.com/list"
+driver.WaitForNetworkIdle                       ' until the fetch/XHR requests stop
+n = driver.ScrollUntilEnd                       ' infinite scroll: load everything
+Debug.Print driver.StatusCode                   ' 200, 404...
+
+Set item = driver.FindElementByCss(".item")
+item.Parent.Highlight                           ' outline an element while debugging
+item.FindElementByTag("img").DownloadResource "C:\Temp\"   ' with the login cookies
+
+driver.FindElementById("open").Click
+driver.SwitchToNewWindow                        ' the tab opened by the click
+driver.Manage.Cookies.SaveToFile "C:\Temp\login.json"     ' restore later with LoadFromFile
+
+driver.Get "https://api.example.com/items"
+Set data = driver.PageToJson                    ' Dictionary / List
+Debug.Print data("items")(1)("name")
+```
+
+| Area | Added |
+|---|---|
+| Options (before `Start`) | `SetHeadless`, `SetIncognito`, `SetGuest`, `SetUserAgent`, `HideAutomationInfo`, `SetAcceptInsecureCerts`, `SetPageLoadStrategy`, `SetUnhandledPromptBehavior`, `SetDetach` (browser stays open after `Quit`), `EnableBiDi` + `WebSocketUrl` |
+| Waits | `WaitForNetworkIdle`, `WaitForDomIdle` (driver and element), `WaitForJQueryIdle` |
+| Scrolling (driver and element) | `ScrollToTop`, `ScrollToBottom`, `ScrollTo`, `ScrollBy`, `ScrollUntilEnd`, `ScrollHeight`, `ScrollWidth` |
+| Page | `StatusCode`, `UserAgent`, `OpenHtml`, `OpenFile`, `PageToHtmlDocument` (MSHTML), `PageToJson`, `PageToXmlDocument` (MSXML), `DownloadResource` |
+| Element | `Parent`, `Children`, `SetAttribute`, `RemoveAttribute`, `HasAttribute`, `Property`, `DomAttribute`, `Focus`, `HasFocus`, `AriaLabel`, `AriaRole`, `Highlight`, `Unhighlight` (also on `WebElements`), `UploadFile`, `DownloadResource` |
+| Windows | `NewTab`, `NewWindow`, `SwitchToNewWindow`, `SwitchToWindowByUrl`, `Window.Minimize`, `Window.Url`, `Window.Handle` |
+| Actions and keys | `Actions.ScrollByWheel`, `ScrollToElement`, `MoveToPosition`, `DragAndDropToPosition`, `Keys.Repeat`, `Keys.Chord` |
+| Cookies | `Cookies.SaveToFile`, `Cookies.LoadFromFile`, `Cookie.SameSite`, `Cookie.HttpOnly`, `AddCookie(..., sameSite)` |
+| DevTools and session | `ExecuteCDP` (Chrome, Edge), `SessionId`, `Status`, `CurrentFrameName`, `Manage.SetLocation` / `Location` (now works with current drivers) |
+| PDF | `PrintToPDF` options: `paperSize` (A4, Letter, "21x29.7"...), `margin`, `shrinkToFit`, `displayHeaderFooter`, `headerTemplate`, `footerTemplate` |
+| Utils (`New Selenium.Utils`) | `ParseJson`, `ToJson`, `SaveBase64ToFile`, `FileToBase64` |
+
+Each command shows its description in the VBA Object Browser (F2).
 
 ## New in 3.1
 
@@ -113,6 +155,35 @@ BSD 3-Clause, see [LICENSE.txt](LICENSE.txt). Original work copyright (c) 2015 f
 
 **기존 VBA 코드는 그대로 쓸 수 있습니다.** 참조(Selenium Type Library)와 `New Selenium.ChromeDriver` 같은 코드를 바꿀 필요가 없습니다.
 
+### 3.2 새 기능
+
+```vba
+driver.SetHeadless                              ' 창 없이 실행 (Start 전에 호출)
+driver.HideAutomationInfo                       ' "자동화된 소프트웨어가 제어 중" 알림 숨김
+driver.Start
+
+driver.WaitForNetworkIdle                       ' 페이지의 네트워크 요청이 끝날 때까지 대기
+n = driver.ScrollUntilEnd                       ' 무한 스크롤을 끝까지 내리기
+Debug.Print driver.StatusCode                   ' 200, 404 ...
+
+Set item = driver.FindElementByCss(".item")
+item.Parent.Highlight                           ' 부모 요소를 빨간 테두리로 표시
+item.FindElementByTag("img").DownloadResource "C:\Temp\"   ' 로그인 상태 그대로 이미지 저장
+
+driver.FindElementById("open").Click
+driver.SwitchToNewWindow                        ' 클릭으로 새로 열린 탭으로 전환
+driver.Manage.Cookies.SaveToFile "C:\Temp\login.json"     ' 다음에 LoadFromFile로 로그인 복원
+
+driver.Get "https://api.example.com/items"
+Set data = driver.PageToJson                    ' JSON 응답을 Dictionary/List로
+```
+
+추가된 명령 전체 목록은 위의 [New in 3.2](#new-in-32) 표에 있습니다. VBA 편집기에서 `driver.`를 입력하면 자동 완성 목록에 나오고, 개체 찾아보기(F2)에서 설명을 볼 수 있습니다.
+
+- 브라우저 설정(`SetHeadless`, `SetIncognito`, `SetUserAgent` 등)은 `Start` 전에 호출해야 합니다.
+- `SetDetach`를 쓰면 `Quit` 후에도 브라우저 창이 남아 있습니다.
+- `ExecuteCDP`, 머리글·바닥글이 있는 PDF, 위치 설정은 Chrome과 Edge에서만 동작합니다.
+
 ### 3.1 새 기능
 
 ```vba
@@ -137,7 +208,7 @@ driver.PrintToPDF "C:\Temp\page.pdf"
 ### 설치
 
 1. 엑셀과 Selenium을 쓰는 프로그램을 모두 닫습니다.
-2. [Releases](https://github.com/naesesang/SeleniumBasic/releases/latest)에서 `SeleniumBasic-3.1.0.0.exe`를 받아 실행합니다. 관리자 권한은 필요 없고, 기존 2.0.9나 3.0은 자동으로 교체됩니다.
+2. [Releases](https://github.com/naesesang/SeleniumBasic/releases/latest)에서 `SeleniumBasic-3.2.0.0.exe`를 받아 실행합니다. 관리자 권한은 필요 없고, 기존 2.0.9나 3.x는 자동으로 교체됩니다.
 3. 코드 서명이 없어 SmartScreen 경고가 뜰 수 있습니다. "추가 정보" > "실행"을 누르세요. 스마트 앱 컨트롤이 켜진 PC에서는 이 선택지 없이 차단됩니다.
 
 필요 환경: Windows 10/11 (.NET Framework 4.8 기본 포함), Chrome 또는 Edge, 처음 실행할 때 인터넷 연결.

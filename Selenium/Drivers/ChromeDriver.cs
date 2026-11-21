@@ -58,7 +58,7 @@ namespace Selenium {
             var svc = new DriverService();
             svc.AddArgument("--port=" + svc.IPEndPoint.Port.ToString());
             svc.AddArgument("--silent");
-            svc.Start(DriverManager.GetChromeDriver(wd.Binary));
+            svc.Start(DriverManager.GetChromeDriver(wd.Binary), true, !wd.Detach);
             return svc;
         }
 
@@ -95,6 +95,12 @@ namespace Selenium {
 
             if (wd.Binary != null)
                 opts["binary"] = wd.Binary;
+
+            if (wd.ExcludeSwitches.Count != 0)
+                opts["excludeSwitches"] = wd.ExcludeSwitches;
+
+            if (wd.Detach)
+                opts["detach"] = true;
         }
 
         private static string ExpandProfile(string profile, bool remote, string profilesFolder) {

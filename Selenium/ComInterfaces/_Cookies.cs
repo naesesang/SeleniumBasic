@@ -15,6 +15,12 @@ namespace Selenium.ComInterfaces {
         [DispId(128), Description("Number of items")]
         int Count { get; }
 
+        [DispId(130), Description("Saves the cookies to a JSON file, to restore a login later with LoadFromFile.")]
+        void SaveToFile(string filePath);
+
+        [DispId(132), Description("Adds the cookies of a JSON file saved by SaveToFile. Open a page of the same site first. Returns the number of cookies added.")]
+        int LoadFromFile(string filePath);
+
         [DispId(-4)]
         System.Collections.IEnumerator _NewEnum();  //Has to be declared last
 

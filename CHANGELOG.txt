@@ -16,6 +16,33 @@ Third party softwares:
  https://github.com/mozilla/geckodriver
 
 
+v3.2.0.0  (2026/11/22)
+===============================================================================
+ * Browser options, before Start: SetHeadless, SetIncognito, SetGuest, SetUserAgent,
+   HideAutomationInfo, SetAcceptInsecureCerts, SetPageLoadStrategy,
+   SetUnhandledPromptBehavior, SetDetach (the browser stays open after Quit),
+   EnableBiDi and WebSocketUrl
+ * Waits: WaitForNetworkIdle, WaitForDomIdle (driver and element), WaitForJQueryIdle
+ * Scrolling, on the driver and on elements: ScrollToTop, ScrollToBottom, ScrollTo,
+   ScrollBy, ScrollUntilEnd (infinite scroll), ScrollHeight, ScrollWidth
+ * Page: StatusCode, UserAgent, OpenHtml, OpenFile, PageToHtmlDocument (MSHTML),
+   PageToJson, PageToXmlDocument (MSXML), DownloadResource (with the browser's cookies)
+ * Elements: Parent, Children, SetAttribute, RemoveAttribute, HasAttribute, Property,
+   DomAttribute, Focus, HasFocus, AriaLabel, AriaRole, Highlight, Unhighlight,
+   UploadFile, DownloadResource. WebElements.Highlight and Unhighlight.
+ * Windows: NewTab, NewWindow, SwitchToNewWindow, SwitchToWindowByUrl,
+   Window.Minimize, Window.Url, Window.Handle
+ * Actions: ScrollByWheel, ScrollToElement, MoveToPosition, DragAndDropToPosition.
+   Keys.Repeat and Keys.Chord.
+ * Cookies: Cookies.SaveToFile and LoadFromFile, Cookie.SameSite and HttpOnly,
+   sameSite argument of Manage.AddCookie. Empty domain, path and expiry are ignored.
+ * DevTools: ExecuteCDP (Chrome, Edge). Session: SessionId, Status, CurrentFrameName.
+ * Manage.SetLocation and Location work again with the W3C drivers (Chrome, Edge)
+ * PrintToPDF: paperSize, margin, shrinkToFit, displayHeaderFooter, headerTemplate,
+   footerTemplate
+ * Utils: ParseJson, ToJson, SaveBase64ToFile, FileToBase64
+
+
 v3.1.0.0  (2026/11/22)
 ===============================================================================
  * Added WebElement.ShadowRoot to find the elements inside a Shadow DOM.

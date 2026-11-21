@@ -31,6 +31,13 @@ namespace Selenium {
         }
 
         /// <summary>
+        /// Moves the mouse to a position in the viewport.
+        /// </summary>
+        internal void MoveToViewport(int x, int y) {
+            W3CActions.PerformPointer(_session, W3CActions.PointerMove("viewport", x, y));
+        }
+
+        /// <summary>
         /// Move the mouse by an offset of the specificed element.
         /// </summary>
         /// <param name="element">Opaque ID assigned to the element to move to, as described in the WebElement JSON Object. If not specified or is null, the offset is relative to current position of the mouse.</param>

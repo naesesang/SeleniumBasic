@@ -209,6 +209,55 @@ namespace Selenium {
         }
 
 
+        /// <summary>
+        /// Scrolls with the mouse wheel by an offset in pixels, over the element or the page.
+        /// </summary>
+        /// <param name="deltaX">Horizontal offset in pixels</param>
+        /// <param name="deltaY">Vertical offset in pixels (positive scrolls down)</param>
+        /// <param name="element">Optional - Element to scroll over. Default is the page.</param>
+        /// <returns>Self</returns>
+        public Actions ScrollByWheel(int deltaX, int deltaY, WebElement element = null) {
+            _actions.Add(() => {
+                if (element == null)
+                    W3CActions.PerformWheel(_session, "viewport", 0, 0, deltaX, deltaY);
+                else
+                    W3CActions.PerformWheel(_session, element.SerializeJson(), 0, 0, deltaX, deltaY);
+            });
+            return this;
+        }
+
+        /// <summary>
+        /// Scrolls the element into view with the mouse wheel.
+        /// </summary>
+        /// <returns>Self</returns>
+        public Actions ScrollToElement(WebElement element) {
+            _actions.Add(() => W3CActions.PerformWheel(_session, element.SerializeJson(), 0, 0, 0, 0));
+            return this;
+        }
+
+        /// <summary>
+        /// Moves the mouse to a position in the viewport, in pixels.
+        /// </summary>
+        /// <returns>Self</returns>
+        public Actions MoveToPosition(int x, int y) {
+            _actions.Add(() => _mouse.MoveToViewport(x, y));
+            return this;
+        }
+
+        /// <summary>
+        /// Drags an element and drops it at a position in the viewport, in pixels.
+        /// </summary>
+        /// <returns>Self</returns>
+        public Actions DragAndDropToPosition(WebElement element, int x, int y) {
+            _actions.Add(() => {
+                act_mouse_press(element);
+                _mouse.MoveToViewport(x, y);
+                act_mouse_release(null);
+            });
+            return this;
+        }
+
+
         #region private support methods
 
         private void act_click(WebElement element) {

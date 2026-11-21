@@ -191,6 +191,83 @@ namespace Selenium.Core {
             return _previousWindow.Activate();
         }
 
+        // Handles known at Start or at the last switch, to find the windows opened since
+        private System.Collections.Generic.HashSet<string> _knownHandles = null;
+
+        /// <summary>
+        /// Remembers the open windows, so that SwitchToNewWindow finds the windows opened later.
+        /// </summary>
+        public void RememberHandles() {
+            _knownHandles = new System.Collections.Generic.HashSet<string>();
+            foreach (string handle in GetWindowsHandles(_session))
+                _knownHandles.Add(handle);
+        }
+
+        /// <summary>
+        /// Switches to the window with the given handle.
+        /// </summary>
+        public Window SwitchToHandle(string handle) {
+            Window window = null;
+            foreach (Window win in _cachedWindows) {
+                if (win.Handle == handle) {
+                    window = win;
+                    break;
+                }
+            }
+            if (window == null) {
+                window = new Window(_session, this, handle);
+                _cachedWindows.Add(window);
+            }
+            ActivateWindow(_session, handle);
+            if (_currentWindow != window) {
+                _previousWindow = _currentWindow;
+                _currentWindow = window;
+            }
+            RememberHandles();
+            return window;
+        }
+
+        /// <summary>
+        /// Switches to the newest window that was not open at Start or at the last switch.
+        /// </summary>
+        public Window SwitchToNewWindow(int timeout = -1) {
+            if (_knownHandles == null)
+                RememberHandles();
+            DateTime endTime = _session.GetEndTime(timeout);
+            while (true) {
+                List handles = GetWindowsHandles(_session);
+                for (int i = handles.Count; i-- > 0; ) {
+                    string handle = (string)handles[i];
+                    if (!_knownHandles.Contains(handle))
+                        return SwitchToHandle(handle);
+                }
+                if (DateTime.UtcNow > endTime)
+                    throw new Errors.NoSuchWindowError("No new window was opened.");
+                SysWaiter.Wait();
+            }
+        }
+
+        /// <summary>
+        /// Switches to the first window whose URL matches the pattern (wildcards * and ?).
+        /// </summary>
+        public Window SwitchToWindowByUrl(string pattern, int timeout = -1) {
+            var regex = new System.Text.RegularExpressions.Regex("^" + System.Text.RegularExpressions.Regex.Escape(pattern)
+                .Replace(@"\*", ".*").Replace(@"\?", ".") + "$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            string startHandle = _currentWindow.Handle;
+            DateTime endTime = _session.GetEndTime(timeout);
+            while (true) {
+                foreach (string handle in GetWindowsHandles(_session)) {
+                    ActivateWindow(_session, handle);
+                    if (regex.IsMatch((string)_session.Send(RequestMethod.GET, "/url")))
+                        return SwitchToHandle(handle);
+                }
+                ActivateWindow(_session, startHandle);
+                if (DateTime.UtcNow > endTime)
+                    throw new Errors.NoSuchWindowError(pattern);
+                SysWaiter.Wait();
+            }
+        }
+
         internal Window ActivateWindow(Window window) {
             if (_currentWindow != window) {
                 ActivateWindow(_session, window.Handle);

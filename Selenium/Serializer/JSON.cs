@@ -523,6 +523,28 @@ namespace Selenium.Serializer {
         }
 
 
+        /// <summary>
+        /// Parses user JSON, which can be nested deeper than the protocol messages.
+        /// </summary>
+        public static object Parse(string json_utf16, int depth) {
+            byte[] data = System.Text.Encoding.UTF8.GetBytes(json_utf16);
+            int index = 0;
+            object result = ParseNext(data, ref index, depth);
+            if (index >= data.Length)
+                throw new JsonException(E_UnexpectedTermination);
+            return result;
+        }
+
+        /// <summary>
+        /// Serializes user values, which can be nested deeper than the protocol messages.
+        /// </summary>
+        public static JSON Serialize(object value, int depth) {
+            var json = new JSON();
+            json.Write(depth, value);
+            return json;
+        }
+
+
         public static object Parse(MemoryStream json_utf8) {
             object res = Parse(json_utf8.GetBuffer(), (int)json_utf8.Length);
             return res;

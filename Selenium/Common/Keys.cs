@@ -661,6 +661,35 @@ namespace Selenium {
 
         #endregion
 
+        /// <summary>
+        /// Repeats keys the given number of times.
+        /// </summary>
+        /// <example>
+        /// <code lang="vbs">
+        /// element.SendKeys Keys.Repeat(Keys.Backspace, 5)
+        /// </code>
+        /// </example>
+        public string Repeat(string keys, int count) {
+            if (string.IsNullOrEmpty(keys) || count <= 0)
+                return string.Empty;
+            var sb = new System.Text.StringBuilder(keys.Length * count);
+            for (int i = 0; i < count; i++)
+                sb.Append(keys);
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Presses the keys together, then releases the modifier keys (Control, Shift, Alt...).
+        /// </summary>
+        /// <example>
+        /// <code lang="vbs">
+        /// element.SendKeys Keys.Chord(Keys.Control, "a")
+        /// </code>
+        /// </example>
+        public string Chord(string key1, string key2 = null, string key3 = null, string key4 = null) {
+            return key1 + key2 + key3 + key4 + Null;
+        }
+
     }
 
 }

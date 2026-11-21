@@ -50,6 +50,9 @@ namespace Selenium {
         string _domain;
         double _expiry;
         bool _secure;
+        bool _httpOnly;
+        string _sameSite;
+        internal readonly Dictionary Raw;
 
         internal Cookie(RemoteSession session, Dictionary dict) {
             _session = session;
@@ -60,6 +63,9 @@ namespace Selenium {
                 _domain = dict.GetValue("domain", string.Empty);
                 _secure = Convert.ToBoolean(dict.Get("secure", false));
                 _expiry = Convert.ToDouble(dict.Get("expiry", 0));
+                _httpOnly = Convert.ToBoolean(dict.Get("httpOnly", false));
+                _sameSite = dict.Get("sameSite", string.Empty) as string ?? string.Empty;
+                Raw = dict;
             } catch (Errors.KeyNotFoundError ex) {
                 throw new DeserializeException(typeof(Cookie), ex);
             } catch (Exception ex) {
@@ -91,6 +97,16 @@ namespace Selenium {
         /// 
         /// </summary>
         public bool Secure { get { return _secure; } }
+
+        /// <summary>
+        /// Gets the SameSite policy of the cookie: Strict, Lax, None or an empty string.
+        /// </summary>
+        public string SameSite { get { return _sameSite; } }
+
+        /// <summary>
+        /// Gets a value indicating whether the cookie is hidden from the scripts.
+        /// </summary>
+        public bool HttpOnly { get { return _httpOnly; } }
 
         /// <summary>
         /// 

@@ -49,6 +49,18 @@ namespace Selenium.ComInterfaces {
         [DispId(433), Description("Sends keys to current focused element or provided element.")]
         Actions SendKeys(string keys, [MarshalAs(UnmanagedType.Struct)]WebElement element = null);
 
+        [DispId(437), Description("Scrolls with the mouse wheel by an offset in pixels, over the element or the page.")]
+        Actions ScrollByWheel(int deltaX, int deltaY, [MarshalAs(UnmanagedType.Struct)]WebElement element = null);
+
+        [DispId(439), Description("Scrolls the element into view with the mouse wheel.")]
+        Actions ScrollToElement([MarshalAs(UnmanagedType.Struct)]WebElement element);
+
+        [DispId(441), Description("Moves the mouse to a position in the viewport, in pixels.")]
+        Actions MoveToPosition(int x, int y);
+
+        [DispId(443), Description("Drags an element and drops it at a position in the viewport, in pixels.")]
+        Actions DragAndDropToPosition([MarshalAs(UnmanagedType.Struct)]WebElement element, int x, int y);
+
         [DispId(435), Description("Performs all stored Actions.")]
         void Perform();
 

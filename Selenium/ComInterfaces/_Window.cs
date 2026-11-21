@@ -49,6 +49,15 @@ namespace Selenium.ComInterfaces {
         [DispId(574), Description("Closes the current window")]
         void Close();
 
+        [DispId(576), Description("Minimizes the window")]
+        void Minimize();
+
+        [DispId(578), Description("URL of the page displayed in the window")]
+        string Url { get; }
+
+        [DispId(580), Description("Handle identifying the window")]
+        string Handle { get; }
+
         [DispId(899), Description("Evaluate equality")]
         bool Equals(object obj);
 

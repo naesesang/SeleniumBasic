@@ -302,7 +302,130 @@ namespace Selenium.ComInterfaces {
         string WaitForDownload(string fileName = null, int timeout = 60000);
 
         [DispId(1705), Description("Saves the current page as a PDF file, as printed by the browser. Returns the full path of the file.")]
-        string PrintToPDF(string filePath, bool landscape = false, double scale = 1.0, bool background = true, string pageRanges = null);
+        string PrintToPDF(string filePath, bool landscape = false, double scale = 1.0, bool background = true, string pageRanges = null
+            , string paperSize = null, double margin = -1, bool shrinkToFit = true
+            , bool displayHeaderFooter = false, string headerTemplate = null, string footerTemplate = null);
+
+        #endregion
+
+
+        #region Browser options (3.2)
+
+        [DispId(1710), Description("Runs the browser without a window. Call before Start.")]
+        void SetHeadless(bool enable = true);
+
+        [DispId(1711), Description("Runs the browser in incognito / InPrivate / private mode. Call before Start.")]
+        void SetIncognito(bool enable = true);
+
+        [DispId(1712), Description("Runs Chrome or Edge as a guest. Call before Start.")]
+        void SetGuest(bool enable = true);
+
+        [DispId(1713), Description("Replaces the User-Agent sent by the browser. Call before Start.")]
+        void SetUserAgent(string userAgent);
+
+        [DispId(1714), Description("Hides the 'controlled by automated test software' bar in Chrome and Edge. Call before Start.")]
+        void HideAutomationInfo();
+
+        [DispId(1715), Description("Accepts invalid or self-signed TLS certificates. Call before Start.")]
+        void SetAcceptInsecureCerts(bool accept = true);
+
+        [DispId(1716), Description("Sets when Get returns: normal, eager or none. Call before Start.")]
+        void SetPageLoadStrategy(string strategy);
+
+        [DispId(1717), Description("Sets how unexpected alerts are handled: dismiss, accept, dismiss and notify, accept and notify, ignore. Call before Start.")]
+        void SetUnhandledPromptBehavior(string behavior);
+
+        [DispId(1718), Description("Keeps Chrome or Edge open after Quit and after the script ends. Call before Start.")]
+        void SetDetach(bool detach = true);
+
+        [DispId(1719), Description("Requests a WebDriver BiDi connection; read WebSocketUrl after Start. Call before Start.")]
+        void EnableBiDi();
+
+        [DispId(1720), Description("WebDriver BiDi WebSocket URL (requires EnableBiDi), or an empty string.")]
+        string WebSocketUrl { get; }
+
+        #endregion
+
+
+        #region Session, page and DevTools (3.2)
+
+        [DispId(1730), Description("Id of the WebDriver session.")]
+        string SessionId { get; }
+
+        [DispId(1731), Description("Status of the driver.")]
+        Dictionary Status();
+
+        [DispId(1732), Description("Name of the current frame, or an empty string for the top page.")]
+        string CurrentFrameName { get; }
+
+        [DispId(1733), Description("User-Agent of the browser.")]
+        string UserAgent { get; }
+
+        [DispId(1734), Description("HTTP status code of the current page (200, 404...), or 0 when unknown.")]
+        int StatusCode { get; }
+
+        [DispId(1735), Description("Executes a Chrome DevTools Protocol command (Chrome, Edge). Parameters: Dictionary or JSON string.")]
+        object ExecuteCDP(string command, object parameters = null);
+
+        [DispId(1740), Description("Opens an HTML string in the browser.")]
+        void OpenHtml(string html);
+
+        [DispId(1741), Description("Opens a local file in the browser.")]
+        void OpenFile(string path);
+
+        [DispId(1742), Description("Returns the page as an HTML document object (MSHTML). The page scripts are not run.")]
+        object PageToHtmlDocument();
+
+        [DispId(1743), Description("Parses the JSON displayed by the page (ex: an API URL) into Dictionary and List objects.")]
+        object PageToJson();
+
+        [DispId(1744), Description("Returns the page as an XML document object (MSXML2.DOMDocument.6.0).")]
+        object PageToXmlDocument();
+
+        [DispId(1745), Description("Downloads a URL with the browser's cookies and saves it. Returns the path of the file.")]
+        string DownloadResource(string url, string path = null, int timeout = 60000);
+
+        [DispId(1750), Description("Waits until the page is loaded and no network request happened for idleTime ms.")]
+        void WaitForNetworkIdle(int idleTime = 500, int timeout = 30000);
+
+        [DispId(1751), Description("Waits until the page is loaded and the DOM did not change for idleTime ms.")]
+        void WaitForDomIdle(int idleTime = 500, int timeout = 30000);
+
+        [DispId(1752), Description("Waits until the page is loaded and jQuery has no active request.")]
+        void WaitForJQueryIdle(int timeout = 30000);
+
+        [DispId(1760), Description("Scrolls the page to the top.")]
+        void ScrollToTop();
+
+        [DispId(1761), Description("Scrolls the page to the bottom.")]
+        void ScrollToBottom();
+
+        [DispId(1762), Description("Scrolls the page to a position in pixels.")]
+        void ScrollTo(int x, int y);
+
+        [DispId(1763), Description("Scrolls the page by an offset in pixels.")]
+        void ScrollBy(int x, int y);
+
+        [DispId(1764), Description("Scrolls down until no more content loads (infinite scroll). Returns the number of scrolls that loaded content.")]
+        int ScrollUntilEnd(int maxScrolls = 100, int pause = 1000);
+
+        [DispId(1765), Description("Height of the page content in pixels.")]
+        int ScrollHeight { get; }
+
+        [DispId(1766), Description("Width of the page content in pixels.")]
+        int ScrollWidth { get; }
+
+        [DispId(1770), Description("Opens a new tab, switches to it and optionally loads a URL.")]
+        Window NewTab(string url = null);
+
+        [DispId(1771), Description("Opens a new window, switches to it and optionally loads a URL.")]
+        Window NewWindow(string url = null);
+
+        [DispId(1772), Description("Switches to a window opened since Start or the last window switch.")]
+        Window SwitchToNewWindow(int timeout = -1, bool raise = true);
+
+        [DispId(1773), Description("Switches to the window whose URL matches the pattern (wildcards * and ?).")]
+        Window SwitchToWindowByUrl(string urlPattern, int timeout = -1, bool raise = true);
 
         #endregion
 

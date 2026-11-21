@@ -24,6 +24,12 @@ namespace Selenium.ComInterfaces {
         [DispId(38), Description("Gets a value indicating whether the cookie is secure.")]
         bool Secure { get; }
 
+        [DispId(42), Description("Gets the SameSite policy of the cookie: Strict, Lax, None or an empty string.")]
+        string SameSite { get; }
+
+        [DispId(44), Description("Gets a value indicating whether the cookie is hidden from the scripts.")]
+        bool HttpOnly { get; }
+
         [DispId(40), Description("Gets the expiration date of the cookie.")]
         string Expiry { get; }
 

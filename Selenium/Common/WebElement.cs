@@ -17,7 +17,7 @@ namespace Selenium {
     [Guid("0277FC34-FD1B-4616-BB19-A693991646BE")]
     [Description("Defines the interface through which the user controls elements on the page.")]
     [ComVisible(true), ClassInterface(ClassInterfaceType.None)]
-    public class WebElement : SearchContext, ComInterfaces._WebElement, IJsonObject {
+    public partial class WebElement : SearchContext, ComInterfaces._WebElement, IJsonObject {
 
         /// <summary>
         /// Returns the element with focus, or BODY if nothing has focus.

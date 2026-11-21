@@ -29,6 +29,7 @@ namespace Selenium.Core {
                     case "strictFileInteractability":
                     case "timeouts":
                     case "unhandledPromptBehavior":
+                    case "webSocketUrl":
                         w3c.Set(key, value);
                         break;
                     case "browserVersion":

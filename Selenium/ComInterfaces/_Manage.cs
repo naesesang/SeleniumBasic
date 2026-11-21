@@ -18,14 +18,14 @@ namespace Selenium.ComInterfaces {
         [DispId(55), Description("Get the current geo location.")]
         Dictionary Location();
 
-        [DispId(56), Description("Get the current geo location.")]
+        [DispId(56), Description("Sets the location reported to the pages (Chrome and Edge) and allows the pages to read it.")]
         void SetLocation(double latitude, double longitude, double altitude);
 
         [DispId(69), Description("Collection of cookies for the current page")]
         Cookies Cookies { get; }
 
         [DispId(72), Description("Adds a cookie to the current page.")]
-        void AddCookie(string name, string value, string domain = null, string path = null, string expiry = null, bool secure = false, bool httpOnly = false);
+        void AddCookie(string name, string value, string domain = null, string path = null, string expiry = null, bool secure = false, bool httpOnly = false, string sameSite = null);
 
         [DispId(75), Description("Deletes all cookies from the page.")]
         void DeleteAllCookies();

@@ -44,6 +44,21 @@ namespace Selenium.Core {
             Perform(session, "pointer", POINTER_ID, parameters, actions);
         }
 
+        /// <summary>
+        /// Scrolls with the wheel. The origin is "viewport" or a serialized element.
+        /// </summary>
+        public static void PerformWheel(RemoteSession session, object origin, int x, int y, int deltaX, int deltaY) {
+            var action = new Dictionary();
+            action.Add("type", "scroll");
+            action.Add("duration", 0);
+            action.Add("origin", origin);
+            action.Add("x", x);
+            action.Add("y", y);
+            action.Add("deltaX", deltaX);
+            action.Add("deltaY", deltaY);
+            Perform(session, "wheel", "wheel", null, new object[] { action });
+        }
+
         public static void PerformKeys(RemoteSession session, List actions) {
             if (actions.Count == 0)
                 return;

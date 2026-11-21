@@ -77,7 +77,11 @@ namespace Selenium.Core {
             _arguments.Add(argument);
         }
 
-        public void Start(string filename, bool hide = true) {
+        /// <param name="filename">Driver file name or path</param>
+        /// <param name="hide">Hides the console window</param>
+        /// <param name="createJob">Kills the driver and the browser when the host process exits.
+        /// False lets a detached browser outlive the driver.</param>
+        public void Start(string filename, bool hide = true, bool createJob = true) {
             Hashtable env = ProcessExt.GetStdEnvironmentVariables();
             env["TEMP"] = _temp_folder;
             env["TMP"] = _temp_folder;
@@ -88,7 +92,7 @@ namespace Selenium.Core {
                 throw new Errors.FileNotFoundError(servicePath);
 
             //Start the process
-            _process = ProcessExt.Start(servicePath, _arguments, null, env, true, true);
+            _process = ProcessExt.Start(servicePath, _arguments, null, env, true, createJob);
 
             //Waits for the port to be listening
             if (!_endpoint.WaitForListening(10000, 150))

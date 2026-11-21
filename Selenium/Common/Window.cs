@@ -190,6 +190,23 @@ namespace Selenium {
         }
 
         /// <summary>
+        /// Minimizes the window.
+        /// </summary>
+        public void Minimize() {
+            _session.Send(RequestMethod.POST, uri() + "/minimize");
+        }
+
+        /// <summary>
+        /// URL of the page displayed in the window.
+        /// </summary>
+        public string Url {
+            get {
+                _windows.ActivateWindow(this);
+                return (string)_session.Send(RequestMethod.GET, "/url");
+            }
+        }
+
+        /// <summary>
         /// Closes the current window.
         /// </summary>
         public void Close() {

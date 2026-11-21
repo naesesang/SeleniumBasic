@@ -86,18 +86,34 @@ namespace Selenium {
         /// </summary>
         /// <returns>The current geo location. {latitude: number, longitude: number, altitude: number} </returns>
         public Dictionary Location() {
-            return (Dictionary)_session.Send(RequestMethod.GET, "/location");
+            // The W3C protocol has no location command: ask the page, as a site would
+            const string script =
+                "if(!navigator.geolocation){callback({error:'Geolocation is not available'});return;}"
+                + "navigator.geolocation.getCurrentPosition(function(p){"
+                + " callback({latitude:p.coords.latitude,longitude:p.coords.longitude,"
+                + "  altitude:p.coords.altitude,accuracy:p.coords.accuracy});"
+                + "},function(e){callback({error:e.message||('Error '+e.code)});},{timeout:10000});";
+            var result = (Dictionary)_session.javascript.ExecuteAsync(script, null, false);
+            object error;
+            if (result.TryGetValue("error", out error))
+                throw new SeleniumError("Failed to get the location: {0}", error);
+            return result;
         }
 
         /// <summary>
-        /// Set the current geo location.
+        /// Sets the location reported to the pages (Chrome and Edge), and allows the pages to read it.
         /// </summary>
         public void SetLocation(double latitude, double longitude, double altitude) {
-            Dictionary location = new Dictionary();
+            var permissions = new Dictionary();
+            permissions.Add("permissions", new object[] { "geolocation" });
+            Internal.Cdp.Execute(_session, "Browser.grantPermissions", permissions);
+
+            var location = new Dictionary();
             location.Add("latitude", latitude);
             location.Add("longitude", longitude);
             location.Add("altitude", altitude);
-            _session.Send(RequestMethod.POST, "/location", "location", location);
+            location.Add("accuracy", 1);
+            Internal.Cdp.Execute(_session, "Emulation.setGeolocationOverride", location);
         }
 
         #endregion
@@ -126,8 +142,8 @@ namespace Selenium {
         /// <param name="expiry"></param>
         /// <param name="secure"></param>
         /// <param name="httpOnly"></param>
-        public void AddCookie(string name, string value, string domain = null, string path = null, string expiry = null, bool secure = false, bool httpOnly = false) {
-            Cookies.AddOne(_session, name, value, path, domain, expiry, secure, httpOnly);
+        public void AddCookie(string name, string value, string domain = null, string path = null, string expiry = null, bool secure = false, bool httpOnly = false, string sameSite = null) {
+            Cookies.AddOne(_session, name, value, path, domain, expiry, secure, httpOnly, sameSite);
         }
 
         /// <summary>

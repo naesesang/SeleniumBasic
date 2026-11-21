@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 
 namespace Selenium.ComInterfaces {
@@ -134,6 +135,12 @@ namespace Selenium.ComInterfaces {
         string Tab { get; }
         [DispId(5186)]
         string Up { get; }
+
+        [DispId(5190), Description("Repeats keys the given number of times. Ex: Keys.Repeat(Keys.Backspace, 5)")]
+        string Repeat(string keys, int count);
+
+        [DispId(5193), Description("Presses the keys together and releases the modifiers at the end. Ex: Keys.Chord(Keys.Control, \"a\")")]
+        string Chord(string key1, string key2 = null, string key3 = null, string key4 = null);
 
     }
 

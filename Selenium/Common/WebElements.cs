@@ -215,6 +215,23 @@ namespace Selenium {
         }
 
 
+        /// <summary>
+        /// Highlights the elements with a colored outline.
+        /// </summary>
+        /// <param name="color">Optional - CSS color. Default is red.</param>
+        public void Highlight(string color = "red") {
+            foreach (WebElement element in this)
+                element.Highlight(color);
+        }
+
+        /// <summary>
+        /// Removes the highlight of the elements.
+        /// </summary>
+        public void Unhighlight() {
+            foreach (WebElement element in this)
+                element.Unhighlight();
+        }
+
         IEnumerator ComInterfaces._WebElements._NewEnum() {
             return GetEnumerator();
         }

@@ -29,6 +29,18 @@ namespace Selenium.ComInterfaces {
         [DispId(423), Description("Searches the specified input string for an occurrence of the regular expression supplied in the pattern parameter and replace it.")]
         string Replace(string input, string pattern, string replacement);
 
+        [DispId(430), Description("Parses a JSON string into Dictionary and List objects.")]
+        object ParseJson(string json);
+
+        [DispId(433), Description("Converts a value (Dictionary, List, array, string, number...) to a JSON string.")]
+        string ToJson(object value);
+
+        [DispId(436), Description("Decodes a Base64 string and saves it to a file. Returns the full path of the file.")]
+        string SaveBase64ToFile(string base64, string filePath);
+
+        [DispId(439), Description("Reads a file and returns its content as a Base64 string.")]
+        string FileToBase64(string filePath);
+
     }
 
 }

@@ -77,6 +77,48 @@ namespace Selenium {
             return Regex.Replace(input, pattern, replacement);
         }
 
+        /// <summary>
+        /// Parses a JSON string into Dictionary and List objects.
+        /// </summary>
+        public object ParseJson(string json) {
+            return WebDriver.ParseUserJson(json);
+        }
+
+        /// <summary>
+        /// Converts a value (Dictionary, List, array, string, number...) to a JSON string.
+        /// </summary>
+        public string ToJson(object value) {
+            return Serializer.JSON.Serialize(value, 64).ToString();
+        }
+
+        /// <summary>
+        /// Decodes a Base64 string (optionally a data URL) and saves it to a file.
+        /// </summary>
+        /// <returns>Full path of the file</returns>
+        public string SaveBase64ToFile(string base64, string filePath) {
+            if (base64 == null)
+                throw new Errors.ArgumentError("The Base64 string is empty.");
+            int comma = base64.IndexOf(',');
+            if (base64.StartsWith("data:", StringComparison.OrdinalIgnoreCase) && comma != -1)
+                base64 = base64.Substring(comma + 1);
+            filePath = System.IO.Path.GetFullPath(IOExt.ExpandPath(filePath));
+            string dir = System.IO.Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(dir))
+                System.IO.Directory.CreateDirectory(dir);
+            System.IO.File.WriteAllBytes(filePath, Convert.FromBase64String(base64.Trim()));
+            return filePath;
+        }
+
+        /// <summary>
+        /// Reads a file and returns its content as a Base64 string.
+        /// </summary>
+        public string FileToBase64(string filePath) {
+            filePath = System.IO.Path.GetFullPath(IOExt.ExpandPath(filePath));
+            if (!System.IO.File.Exists(filePath))
+                throw new Errors.FileNotFoundError(filePath);
+            return Convert.ToBase64String(System.IO.File.ReadAllBytes(filePath));
+        }
+
     }
 
 }

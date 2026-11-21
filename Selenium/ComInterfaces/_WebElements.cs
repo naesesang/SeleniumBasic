@@ -37,6 +37,12 @@ namespace Selenium.ComInterfaces {
         [DispId(92), Description("Returns a list containing the text parsed to a number for each element")]
         List Values(object defaultValue = null, int offsetStart = 0, int offsetEnd = 0);
 
+        [DispId(120), Description("Highlights the elements with a colored outline.")]
+        void Highlight(string color = "red");
+
+        [DispId(122), Description("Removes the highlight of the elements.")]
+        void Unhighlight();
+
         [DispId(-4)]
         System.Collections.IEnumerator _NewEnum();  //Has to be declared last
 

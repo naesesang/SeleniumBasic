@@ -47,7 +47,7 @@ namespace Selenium {
     [Guid("0277FC34-FD1B-4616-BB19-E3CCFFAB4234")]
     [ComVisible(true), ClassInterface(ClassInterfaceType.None)]
     [Description("Defines the interface through which the user controls the browser using WebDriver")]
-    public class WebDriver : SearchContext, ComInterfaces._WebDriver, IDisposable {
+    public partial class WebDriver : SearchContext, ComInterfaces._WebDriver, IDisposable {
 
         const string RUNNING_OBJECT_NAME = "Selenium.WebDriver";
 
@@ -58,6 +58,8 @@ namespace Selenium {
         internal string Profile = null;
         internal string Binary = null;
         internal bool Persistant = false;
+        internal List ExcludeSwitches = new List();
+        internal bool Detach = false;
 
         private Timeouts timeouts = new Timeouts();
         private IDriverService _service = null;
@@ -224,6 +226,7 @@ namespace Selenium {
                 browser = ExpendBrowserName(browser);
                 if (_downloadFolder != null)
                     AddDownloadPreferences(browser, _downloadFolder);
+                ApplyStartOptions(browser);
                 switch (browser) {
                     case "firefox":
                         _service = FirefoxDriver.StartService(this);
@@ -254,6 +257,7 @@ namespace Selenium {
                 _session = new RemoteSession(_service.Uri, true, this.timeouts);
                 _session.Start(this.Capabilities);
                 _downloadSinceUtc = DateTime.UtcNow;
+                _session.windows.RememberHandles();
 
                 if (browser == "firefox")
                     FirefoxDriver.InstallExtensions(this, _session);
@@ -284,6 +288,7 @@ namespace Selenium {
         public void StartRemotely(string executorUri, string browser = null, string version = null, string platform = null) {
             try {
                 browser = ExpendBrowserName(browser);
+                ApplyStartOptions(browser);
                 switch (browser) {
                     case "firefox":
                         FirefoxDriver.ExtendCapabilities(this, true);
@@ -332,7 +337,9 @@ namespace Selenium {
             if (_session != null) {
                 try {
                     if (_session.IsLocal) {
-                        _session.Delete();
+                        // A detached browser stays open: only the driver is stopped
+                        if (!this.Detach)
+                            _session.Delete();
                         _service.Quit(_session.server);
                     } else {
                         _session.Delete();
@@ -1106,14 +1113,23 @@ namespace Selenium {
         /// <param name="scale">Optional - Scale between 0.1 and 2. Default is 1.</param>
         /// <param name="background">Optional - Prints the background colors and images. Default is True.</param>
         /// <param name="pageRanges">Optional - Pages to print (ex: "1-3,5"). Default is all.</param>
+        /// <param name="paperSize">Optional - A3, A4, A5, B4, B5, Letter, Legal, Tabloid, or "width x height" in cm (ex: "21x29.7"). Default is Letter.</param>
+        /// <param name="margin">Optional - Margin of all sides in cm. Default is 1.</param>
+        /// <param name="shrinkToFit">Optional - Shrinks the content to fit the page width. Default is True.</param>
+        /// <param name="displayHeaderFooter">Optional - Prints the date, title, URL and page numbers (Chrome and Edge). Default is False.</param>
+        /// <param name="headerTemplate">Optional - HTML of the header, with the classes date, title, url, pageNumber and totalPages (Chrome and Edge).</param>
+        /// <param name="footerTemplate">Optional - HTML of the footer, with the same classes (Chrome and Edge).</param>
         /// <returns>Full path of the PDF file</returns>
         /// <example>
         /// <code lang="vbs">
         /// driver.Get "https://www.example.com"
         /// driver.PrintToPDF "%USERPROFILE%\Desktop\page.pdf"
+        /// driver.PrintToPDF "C:\Temp\a4.pdf", paperSize:="A4", margin:=1.5, displayHeaderFooter:=True
         /// </code>
         /// </example>
-        public string PrintToPDF(string filePath, bool landscape = false, double scale = 1.0, bool background = true, string pageRanges = null) {
+        public string PrintToPDF(string filePath, bool landscape = false, double scale = 1.0, bool background = true, string pageRanges = null
+            , string paperSize = null, double margin = -1, bool shrinkToFit = true
+            , bool displayHeaderFooter = false, string headerTemplate = null, string footerTemplate = null) {
             if (string.IsNullOrEmpty(filePath))
                 throw new Errors.ArgumentError("The file path is empty.");
             if (filePath.IndexOf('{') != -1) {
@@ -1122,20 +1138,61 @@ namespace Selenium {
             }
             filePath = Path.GetFullPath(IOExt.ExpandPath(filePath));
 
-            var param = new Dictionary();
-            param.Add("orientation", landscape ? "landscape" : "portrait");
-            param.Add("scale", scale);
-            param.Add("background", background);
-            if (!string.IsNullOrEmpty(pageRanges)) {
-                var ranges = new List();
-                foreach (string range in pageRanges.Split(',')) {
-                    if (range.Trim().Length != 0)
-                        ranges.Add(range.Trim());
-                }
-                param.Add("pageRanges", ranges);
-            }
+            double paperWidth, paperHeight;
+            bool hasPaper = PaperSizes.TryGet(paperSize, out paperWidth, out paperHeight);
 
-            var base64 = (string)session.Send(RequestMethod.POST, "/print", param);
+            string base64;
+            if (displayHeaderFooter || !string.IsNullOrEmpty(headerTemplate) || !string.IsNullOrEmpty(footerTemplate)) {
+                // Header and footer are only available through the DevTools protocol (inches)
+                var cdp = new Dictionary();
+                cdp.Add("landscape", landscape);
+                cdp.Add("scale", scale);
+                cdp.Add("printBackground", background);
+                cdp.Add("displayHeaderFooter", true);
+                if (!string.IsNullOrEmpty(pageRanges))
+                    cdp.Add("pageRanges", pageRanges);
+                if (hasPaper) {
+                    cdp.Add("paperWidth", paperWidth / 2.54);
+                    cdp.Add("paperHeight", paperHeight / 2.54);
+                }
+                if (margin >= 0) {
+                    foreach (string side in new[] { "marginTop", "marginBottom", "marginLeft", "marginRight" })
+                        cdp.Add(side, margin / 2.54);
+                }
+                if (!string.IsNullOrEmpty(headerTemplate))
+                    cdp.Add("headerTemplate", headerTemplate);
+                if (!string.IsNullOrEmpty(footerTemplate))
+                    cdp.Add("footerTemplate", footerTemplate);
+                var result = (Dictionary)Cdp.Execute(session, "Page.printToPDF", cdp);
+                base64 = (string)result["data"];
+            } else {
+                var param = new Dictionary();
+                param.Add("orientation", landscape ? "landscape" : "portrait");
+                param.Add("scale", scale);
+                param.Add("background", background);
+                param.Add("shrinkToFit", shrinkToFit);
+                if (!string.IsNullOrEmpty(pageRanges)) {
+                    var ranges = new List();
+                    foreach (string range in pageRanges.Split(',')) {
+                        if (range.Trim().Length != 0)
+                            ranges.Add(range.Trim());
+                    }
+                    param.Add("pageRanges", ranges);
+                }
+                if (hasPaper) {
+                    var page = new Dictionary();
+                    page.Add("width", paperWidth);
+                    page.Add("height", paperHeight);
+                    param.Add("page", page);
+                }
+                if (margin >= 0) {
+                    var margins = new Dictionary();
+                    foreach (string side in new[] { "top", "bottom", "left", "right" })
+                        margins.Add(side, margin);
+                    param.Add("margin", margins);
+                }
+                base64 = (string)session.Send(RequestMethod.POST, "/print", param);
+            }
             string directory = Path.GetDirectoryName(filePath);
             if (!string.IsNullOrEmpty(directory))
                 Directory.CreateDirectory(directory);

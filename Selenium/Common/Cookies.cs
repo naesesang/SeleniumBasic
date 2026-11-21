@@ -37,15 +37,15 @@ namespace Selenium {
         /// <param name="expiry"></param>
         /// <param name="secure"></param>
         /// <param name="httpOnly"></param>
-        internal static void AddOne(RemoteSession session, string name, string value, string path, string domain, string expiry, bool secure, bool httpOnly) {
+        internal static void AddOne(RemoteSession session, string name, string value, string path, string domain, string expiry, bool secure, bool httpOnly, string sameSite = null) {
             var dict = new Dictionary();
             dict.Add("name", name);
             dict.Add("value", value);
-            if (path != null)
+            if (!string.IsNullOrEmpty(path))
                 dict.Add("path", path);
-            if (domain != null)
+            if (!string.IsNullOrEmpty(domain))
                 dict.Add("domain", domain);
-            if (expiry != null) {
+            if (!string.IsNullOrEmpty(expiry)) {
                 var dt = (long)(DateTime.Parse(expiry) - Cookie.BASE_TIME).TotalSeconds;
                 dict.Add("expiry", dt);
             }
@@ -53,6 +53,8 @@ namespace Selenium {
                 dict.Add("secure", true);
             if (httpOnly == true)
                 dict.Add("httpOnly", true);
+            if (!string.IsNullOrEmpty(sameSite))
+                dict.Add("sameSite", sameSite);
             session.Send(RequestMethod.POST, "/cookie", "cookie", dict);
         }
 
@@ -66,8 +68,11 @@ namespace Selenium {
         #endregion
 
 
+        private readonly RemoteSession _session;
+
         internal Cookies(RemoteSession session, List rawCookies)
             : base(rawCookies.Count) {
+            _session = session;
 
             _count = _items.Length;
             for (int i = 0; i < _count; i++) {
@@ -117,6 +122,50 @@ namespace Selenium {
                     return this[(int)identifier - 1];
                 throw new Errors.ArgumentError("Invalid type for argument identifier.");
             }
+        }
+
+        /// <summary>
+        /// Saves the cookies to a JSON file, to restore a login later with LoadFromFile.
+        /// </summary>
+        /// <param name="filePath">File path</param>
+        public void SaveToFile(string filePath) {
+            filePath = System.IO.Path.GetFullPath(Internal.IOExt.ExpandPath(filePath));
+            var list = new List(_count);
+            for (int i = 0; i < _count; i++)
+                list.Add(((Cookie)_items[i]).Raw);
+            string dir = System.IO.Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(dir))
+                System.IO.Directory.CreateDirectory(dir);
+            System.IO.File.WriteAllText(filePath, Serializer.JSON.Serialize(list, 16).ToString(), new System.Text.UTF8Encoding(false));
+        }
+
+        /// <summary>
+        /// Adds the cookies of a JSON file saved by SaveToFile to the browser.
+        /// Open a page of the same site first: a browser only accepts the cookies of the current domain.
+        /// </summary>
+        /// <param name="filePath">File path</param>
+        /// <returns>Number of cookies added</returns>
+        public int LoadFromFile(string filePath) {
+            filePath = System.IO.Path.GetFullPath(Internal.IOExt.ExpandPath(filePath));
+            if (!System.IO.File.Exists(filePath))
+                throw new Errors.FileNotFoundError(filePath);
+            var list = WebDriver.ParseUserJson(System.IO.File.ReadAllText(filePath)) as List;
+            if (list == null)
+                throw new SeleniumError("The file does not contain a list of cookies: {0}", filePath);
+            int added = 0;
+            foreach (object item in list) {
+                var cookie = item as Dictionary;
+                if (cookie == null)
+                    continue;
+                try {
+                    _session.Send(RequestMethod.POST, "/cookie", "cookie", cookie);
+                    added++;
+                } catch (Errors.InvalidCookieDomainError) {
+                } catch (Errors.UnableToSetCookieError) {
+                } catch (Errors.InvalidArgumentError) {
+                }
+            }
+            return added;
         }
 
         IEnumerator ComInterfaces._Cookies._NewEnum() {
