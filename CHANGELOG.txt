@@ -16,6 +16,22 @@ Third party softwares:
  https://github.com/mozilla/geckodriver
 
 
+v3.1.0.0  (2026/11/22)
+===============================================================================
+ * Added WebElement.ShadowRoot to find the elements inside a Shadow DOM.
+   ExecuteScript also returns shadow roots and accepts them as arguments.
+ * Added WebDriver.SetDownloadFolder: downloads go to the given folder without
+   asking, and PDF files are downloaded instead of opened. Chrome and Edge accept
+   it before or after Start, Firefox only before Start.
+ * Added WebDriver.WaitForDownload: waits for a download to complete and returns
+   the path of the file. Accepts a file name pattern (ex: "*.xlsx").
+ * Added WebDriver.PrintToPDF: saves the page as a PDF printed by the browser
+   (orientation, scale, background, page ranges).
+ * Added the error NoSuchShadowRootError
+ * FindElementByTag and By.Tag are sent as CSS selectors (same results, and
+   required in a shadow root by Chrome and Edge)
+
+
 v3.0.0.0  (2026/10/30)
 ===============================================================================
  * Requires the .NET Framework 4.8 (was 3.5)

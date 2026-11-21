@@ -222,6 +222,8 @@ namespace Selenium {
         public void Start(string browser = null, string baseUrl = null) {
             try {
                 browser = ExpendBrowserName(browser);
+                if (_downloadFolder != null)
+                    AddDownloadPreferences(browser, _downloadFolder);
                 switch (browser) {
                     case "firefox":
                         _service = FirefoxDriver.StartService(this);
@@ -251,6 +253,7 @@ namespace Selenium {
 
                 _session = new RemoteSession(_service.Uri, true, this.timeouts);
                 _session.Start(this.Capabilities);
+                _downloadSinceUtc = DateTime.UtcNow;
 
                 if (browser == "firefox")
                     FirefoxDriver.InstallExtensions(this, _session);
@@ -999,6 +1002,145 @@ namespace Selenium {
         /// <returns>{number} Status code for application cache: {UNCACHED = 0, IDLE = 1, CHECKING = 2, DOWNLOADING = 3, UPDATE_READY = 4, OBSOLETE = 5}</returns>
         public CacheState CacheStatus() {
             return (CacheState)session.Send(RequestMethod.GET, "/application_cache/status");
+        }
+
+        #endregion
+
+
+        #region Downloads and printing
+
+        private string _downloadFolder = null;
+        private DateTime _downloadSinceUtc = DateTime.UtcNow;
+
+        /// <summary>
+        /// Sets the folder where the browser saves the downloaded files, without asking.
+        /// PDF files are downloaded instead of being opened in the browser.
+        /// </summary>
+        /// <param name="folder">Folder path. Environment variables such as %USERPROFILE% are expanded. Created when missing.</param>
+        /// <remarks>Chrome and Edge accept it before or after Start, Firefox only before Start.</remarks>
+        /// <example>
+        /// <code lang="vbs">
+        /// driver.SetDownloadFolder "C:\Temp\Downloads"
+        /// driver.Start "chrome"
+        /// driver.Get "https://example.com/report"
+        /// driver.FindElementByLinkText("Export").Click
+        /// path = driver.WaitForDownload("*.xlsx")
+        /// </code>
+        /// </example>
+        public void SetDownloadFolder(string folder) {
+            if (string.IsNullOrEmpty(folder))
+                throw new Errors.ArgumentError("The download folder is empty.");
+            folder = Path.GetFullPath(IOExt.ExpandPath(folder));
+            Directory.CreateDirectory(folder);
+            _downloadFolder = folder;
+            _downloadSinceUtc = DateTime.UtcNow;
+
+            if (_session == null)
+                return;
+
+            string browser = this.Capabilities.BrowserName;
+            if (browser != "chrome" && browser != "MicrosoftEdge")
+                throw new Errors.InvalidOperationError("Call SetDownloadFolder before Start for this browser.");
+
+            var parameters = new Dictionary();
+            parameters.Add("behavior", "allow");
+            parameters.Add("downloadPath", folder);
+            var command = new Dictionary();
+            command.Add("cmd", "Page.setDownloadBehavior");
+            command.Add("params", parameters);
+            _session.Send(RequestMethod.POST, "/chromium/send_command", command);
+        }
+
+        private void AddDownloadPreferences(string browser, string folder) {
+            var prefs = new Dictionary();
+            if (browser == "firefox") {
+                prefs.Add("browser.download.folderList", 2);
+                prefs.Add("browser.download.dir", folder);
+                prefs.Add("browser.download.useDownloadDir", true);
+                prefs.Add("browser.download.always_ask_before_handling_new_types", false);
+                prefs.Add("browser.download.manager.showWhenStarting", false);
+                prefs.Add("browser.helperApps.neverAsk.saveToDisk",
+                    "application/pdf,application/octet-stream,application/zip,text/csv,text/plain,"
+                    + "application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,"
+                    + "application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+                prefs.Add("pdfjs.disabled", true);
+            } else {
+                prefs.Add("download.default_directory", folder);
+                prefs.Add("download.prompt_for_download", false);
+                prefs.Add("download.directory_upgrade", true);
+                prefs.Add("plugins.always_open_pdf_externally", true);
+            }
+            // Preferences set by the user with SetPreference take precedence
+            foreach (DictionaryItem item in prefs) {
+                if (!this.Preferences.ContainsKey(item.Key))
+                    this.Preferences.Add(item.Key, item.Value);
+            }
+        }
+
+        /// <summary>
+        /// Waits for a download to complete and returns the path of the downloaded file.
+        /// Only the files downloaded after Start, SetDownloadFolder or the previous WaitForDownload are considered.
+        /// </summary>
+        /// <param name="fileName">Optional - File name or pattern with wildcards (ex: "*.xlsx"). Any file when empty.</param>
+        /// <param name="timeout">Optional - Timeout in milliseconds. Default is 60 seconds.</param>
+        /// <returns>Full path of the downloaded file</returns>
+        /// <example>
+        /// <code lang="vbs">
+        /// driver.FindElementByCss("#export").Click
+        /// path = driver.WaitForDownload("*.csv")
+        /// </code>
+        /// </example>
+        public string WaitForDownload(string fileName = null, int timeout = 60000) {
+            string folder = _downloadFolder ?? Downloads.GetDefaultFolder();
+            // One second of margin for the file system time resolution
+            string path = Downloads.WaitForFile(folder, fileName, _downloadSinceUtc.AddSeconds(-1), timeout);
+            _downloadSinceUtc = DateTime.UtcNow;
+            return path;
+        }
+
+        /// <summary>
+        /// Saves the current page as a PDF file, as printed by the browser.
+        /// </summary>
+        /// <param name="filePath">Path of the PDF file. Environment variables are expanded and {format} is replaced by the date (ex: "report_{yyyyMMdd}.pdf").</param>
+        /// <param name="landscape">Optional - Landscape orientation. Default is portrait.</param>
+        /// <param name="scale">Optional - Scale between 0.1 and 2. Default is 1.</param>
+        /// <param name="background">Optional - Prints the background colors and images. Default is True.</param>
+        /// <param name="pageRanges">Optional - Pages to print (ex: "1-3,5"). Default is all.</param>
+        /// <returns>Full path of the PDF file</returns>
+        /// <example>
+        /// <code lang="vbs">
+        /// driver.Get "https://www.example.com"
+        /// driver.PrintToPDF "%USERPROFILE%\Desktop\page.pdf"
+        /// </code>
+        /// </example>
+        public string PrintToPDF(string filePath, bool landscape = false, double scale = 1.0, bool background = true, string pageRanges = null) {
+            if (string.IsNullOrEmpty(filePath))
+                throw new Errors.ArgumentError("The file path is empty.");
+            if (filePath.IndexOf('{') != -1) {
+                filePath = System.Text.RegularExpressions.Regex.Replace(filePath, @"\{([^}]+)\}",
+                    (m) => DateTime.Now.ToString(m.Groups[1].Value));
+            }
+            filePath = Path.GetFullPath(IOExt.ExpandPath(filePath));
+
+            var param = new Dictionary();
+            param.Add("orientation", landscape ? "landscape" : "portrait");
+            param.Add("scale", scale);
+            param.Add("background", background);
+            if (!string.IsNullOrEmpty(pageRanges)) {
+                var ranges = new List();
+                foreach (string range in pageRanges.Split(',')) {
+                    if (range.Trim().Length != 0)
+                        ranges.Add(range.Trim());
+                }
+                param.Add("pageRanges", ranges);
+            }
+
+            var base64 = (string)session.Send(RequestMethod.POST, "/print", param);
+            string directory = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(directory))
+                Directory.CreateDirectory(directory);
+            File.WriteAllBytes(filePath, Convert.FromBase64String(base64));
+            return filePath;
         }
 
         #endregion

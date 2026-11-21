@@ -234,6 +234,9 @@ namespace Selenium.ComInterfaces {
         [DispId(8300), Description("Cast the WebElement to a Select element")]
         SelectElement AsSelect();
 
+        [DispId(8500), Description("Returns the shadow root of the element (Shadow DOM), to find the elements inside it.")]
+        ShadowRoot ShadowRoot(int timeout = -1, bool raise = true);
+
         [DispId(8400), Description("Cast the WebElement to a Table element")]
         TableElement AsTable();
 

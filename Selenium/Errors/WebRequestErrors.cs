@@ -67,6 +67,8 @@ namespace Selenium.Errors {
                 case "no such cookie": return new Errors.NoSuchCookieError(message);
                 case "no such element": return new Errors.NoSuchElementError(message);
                 case "no such frame": return new Errors.NoSuchFrameError(message);
+                case "no such shadow root": return new Errors.NoSuchShadowRootError(message);
+                case "detached shadow root": return new Errors.StaleElementReferenceError(message);
                 case "no such window": return new Errors.NoSuchWindowError(message);
                 case "script timeout": return new Errors.ScriptTimeoutError(message);
                 case "session not created": return new Errors.SessionNotCreatedError(message);
@@ -338,6 +340,14 @@ namespace Selenium.Errors {
 
     /// <summary>
     /// 
+    /// </summary>
+    public class NoSuchShadowRootError : WebRequestError {
+        internal NoSuchShadowRootError(string message = null)
+            : base(65, message ?? "The element has no shadow root.") { }
+    }
+
+    /// <summary>
+    ///
     /// </summary>
     public class NoSuchCookieError : WebRequestError {
         internal NoSuchCookieError(string message = null)

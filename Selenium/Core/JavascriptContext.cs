@@ -93,6 +93,8 @@ namespace Selenium.Core {
                 string id;
                 if (WebElement.TryParse(valDict, out id))
                     return new WebElement(this.session, id);
+                if (ShadowRoot.TryParse(valDict, out id))
+                    return new ShadowRoot(this.session, id);
 
                 foreach (DictionaryItem item in valDict)
                     item.Value = Unbox(item.Value);

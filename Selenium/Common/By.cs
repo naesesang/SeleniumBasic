@@ -128,6 +128,11 @@ namespace Selenium {
                     var names = value.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
                     value = names.Length == 0 ? "." : "." + string.Join(".", Array.ConvertAll(names, CssEscape));
                     break;
+                case Strategy.Tag:
+                    // Same result as "tag name", which Chrome and Edge reject in a shadow root
+                    method = "css selector";
+                    value = CssEscape(value.Trim());
+                    break;
                 default:
                     method = FormatStrategy(strategy);
                     break;

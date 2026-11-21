@@ -644,6 +644,38 @@ namespace Selenium {
             return new TableElement(_session, this);
         }
 
+        /// <summary>
+        /// Returns the shadow root of this element (Shadow DOM), to find the elements inside it.
+        /// </summary>
+        /// <param name="timeout">Optional timeout in milliseconds to wait for the shadow root</param>
+        /// <param name="raise">Optional - Raise an exception after the timeout when true</param>
+        /// <returns><see cref="ShadowRoot" /> or Nothing</returns>
+        /// <example>
+        /// <code lang="vbs">
+        /// Set root = driver.FindElementByCss("my-component").ShadowRoot
+        /// root.FindElementByCss("button").Click
+        /// </code>
+        /// </example>
+        public ShadowRoot ShadowRoot(int timeout = -1, bool raise = true) {
+            DateTime endTime = _session.GetEndTime(timeout);
+            while (true) {
+                try {
+                    var dict = (Dictionary)Send(RequestMethod.GET, "/shadow");
+                    string id;
+                    if (!Selenium.ShadowRoot.TryParse(dict, out id))
+                        throw new Errors.NoSuchShadowRootError();
+                    return new ShadowRoot(_session, id);
+                } catch (Errors.NoSuchShadowRootError) {
+                    if (DateTime.UtcNow > endTime) {
+                        if (raise)
+                            throw;
+                        return null;
+                    }
+                }
+                SysWaiter.Wait();
+            }
+        }
+
         #endregion
 
 

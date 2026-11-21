@@ -293,6 +293,20 @@ namespace Selenium.ComInterfaces {
         #endregion
 
 
+        #region Downloads and printing
+
+        [DispId(1700), Description("Sets the folder where the browser saves the downloaded files, without asking. Chrome and Edge accept it before or after Start, Firefox only before Start.")]
+        void SetDownloadFolder(string folder);
+
+        [DispId(1702), Description("Waits for a download to complete and returns the path of the file. fileName accepts wildcards (ex: \"*.xlsx\"). Default timeout is 60 seconds.")]
+        string WaitForDownload(string fileName = null, int timeout = 60000);
+
+        [DispId(1705), Description("Saves the current page as a PDF file, as printed by the browser. Returns the full path of the file.")]
+        string PrintToPDF(string filePath, bool landscape = false, double scale = 1.0, bool background = true, string pageRanges = null);
+
+        #endregion
+
+
         #region Clipboard
 
         [DispId(356), Description("Set text in the Clipboard")]

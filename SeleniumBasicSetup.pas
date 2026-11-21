@@ -4,7 +4,7 @@
 }
 
 lib.Guid := '{0277FC34-FD1B-4616-BB19-A9AABCAF2A70}';
-lib.FullName := 'Selenium, Version=3.0.0.0, Culture=neutral, PublicKeyToken=d499ab7f7ba4d827';
+lib.FullName := 'Selenium, Version=3.1.0.0, Culture=neutral, PublicKeyToken=d499ab7f7ba4d827';
 lib.Description := 'Selenium Type Library';
 lib.TypeVersion := '2.0';
 lib.PathDll := ExpandConstant('{app}\Selenium.dll');
@@ -47,6 +47,7 @@ RegInterface(lib, '{0277FC34-FD1B-4616-BB19-54BA7C175990}', '_Image', '{00020420
 RegInterface(lib, '{0277FC34-FD1B-4616-BB19-61DAD6C51012}', '_Keyboard', '{00020420-0000-0000-C000-000000000046}');
 RegInterface(lib, '{0277FC34-FD1B-4616-BB19-637431245D48}', '_Keys', '{00020424-0000-0000-C000-000000000046}');
 RegInterface(lib, '{0277FC34-FD1B-4616-BB19-63F894CA99E9}', '_Mouse', '{00020420-0000-0000-C000-000000000046}');
+RegInterface(lib, '{0277FC34-FD1B-4616-BB19-6C9D2E1A54F7}', '_ShadowRoot', '{00020420-0000-0000-C000-000000000046}');
 RegInterface(lib, '{0277FC34-FD1B-4616-BB19-6E0522EA435E}', '_Application', '{00020420-0000-0000-C000-000000000046}');
 RegInterface(lib, '{0277FC34-FD1B-4616-BB19-74F5D5680428}', '_Timeouts', '{00020420-0000-0000-C000-000000000046}');
 RegInterface(lib, '{0277FC34-FD1B-4616-BB19-7C9763568492}', '_WebElements', '{00020420-0000-0000-C000-000000000046}');
