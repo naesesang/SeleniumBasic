@@ -88,7 +88,7 @@ Debug.Print data("items")(1)("name")
 | PDF | `PrintToPDF` options: `paperSize` (A4, Letter, "21x29.7"...), `margin`, `shrinkToFit`, `displayHeaderFooter`, `headerTemplate`, `footerTemplate` |
 | Utils (`New Selenium.Utils`) | `ParseJson`, `ToJson`, `SaveBase64ToFile`, `FileToBase64` |
 
-Each command shows its description in the VBA Object Browser (F2).
+Each command shows its description in the VBA Object Browser (F2). A command reference in Korean is in [docs/COMMANDS.ko.md](docs/COMMANDS.ko.md).
 
 ## New in 3.1
 
@@ -178,7 +178,7 @@ driver.Get "https://api.example.com/items"
 Set data = driver.PageToJson                    ' JSON 응답을 Dictionary/List로
 ```
 
-추가된 명령 전체 목록은 위의 [New in 3.2](#new-in-32) 표에 있습니다. VBA 편집기에서 `driver.`를 입력하면 자동 완성 목록에 나오고, 개체 찾아보기(F2)에서 설명을 볼 수 있습니다.
+**모든 명령의 한국어 설명은 [명령어 설명서](docs/COMMANDS.ko.md)에 있습니다.** 추가된 명령 목록은 위의 [New in 3.2](#new-in-32) 표에도 있습니다. VBA 편집기에서 `driver.`를 입력하면 자동 완성 목록에 나오고, 개체 찾아보기(F2)에서 설명을 볼 수 있습니다.
 
 - 브라우저 설정(`SetHeadless`, `SetIncognito`, `SetUserAgent` 등)은 `Start` 전에 호출해야 합니다.
 - `SetDetach`를 쓰면 `Quit` 후에도 브라우저 창이 남아 있습니다.
