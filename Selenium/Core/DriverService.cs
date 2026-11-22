@@ -94,9 +94,14 @@ namespace Selenium.Core {
             //Start the process
             _process = ProcessExt.Start(servicePath, _arguments, null, env, true, createJob);
 
-            //Waits for the port to be listening
-            if (!_endpoint.WaitForListening(10000, 150))
-                throw new Errors.TimeoutError("The driver failed to open the listening port {0} within 10s", _endpoint);
+            //Waits for the port to accept connections. 20s leaves time for an antivirus
+            //scanning a newly downloaded driver.
+            ProcessExt process = _process;
+            if (!_endpoint.WaitForListening(20000, 100, () => process.HasExited)) {
+                if (process.HasExited)
+                    throw new SeleniumError("The driver exited at startup: {0}", servicePath);
+                throw new Errors.TimeoutError("The driver failed to open the listening port {0} within 20s", _endpoint);
+            }
 
         }
 

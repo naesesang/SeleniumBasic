@@ -16,6 +16,16 @@ Third party softwares:
  https://github.com/mozilla/geckodriver
 
 
+v3.2.1.0  (2026/11/22)
+===============================================================================
+ * Fixed Start failing with "TimeoutError: The driver failed to open the listening
+   port ... within 10s" on Windows builds with KB5127936 (florentbr/SeleniumBasic#299).
+   The driver is now considered ready when a TCP connection to its port succeeds,
+   instead of reading the TCP table (GetTcpTable), which reported the LISTEN state as 0.
+ * Start fails at once when the driver process exits, and waits up to 20s (was 10s)
+   for a driver being scanned by an antivirus.
+
+
 v3.2.0.0  (2026/11/22)
 ===============================================================================
  * Browser options, before Start: SetHeadless, SetIncognito, SetGuest, SetUserAgent,

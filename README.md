@@ -26,7 +26,7 @@ SeleniumBasic 2.0.9 stopped working with current browsers:
 ## Install
 
 1. Close Excel, Word and any script using Selenium.
-2. Run `SeleniumBasic-3.2.0.0.exe` from the [Releases](https://github.com/naesesang/SeleniumBasic/releases/latest) page. No administrator rights are needed: it installs for the current user in `%LOCALAPPDATA%\SeleniumBasic` and replaces a previous 2.0.9 or 3.x install.
+2. Run `SeleniumBasic-3.2.1.0.exe` from the [Releases](https://github.com/naesesang/SeleniumBasic/releases/latest) page. No administrator rights are needed: it installs for the current user in `%LOCALAPPDATA%\SeleniumBasic` and replaces a previous 2.0.9 or 3.x install.
 3. In the VBA editor, check *Tools > References > Selenium Type Library* (already checked in workbooks made with 2.0.9).
 
 The installer is not code-signed, so SmartScreen may show a warning ("More info" > "Run anyway"). On PCs where Smart App Control is on, Windows blocks unsigned installers without that option.
@@ -127,9 +127,10 @@ See [CHANGELOG.txt](CHANGELOG.txt). In short (3.0): .NET Framework 4.8 (was 3.5)
 
 - **Runtime error 8013101B or 80131040** when creating a driver: the COM registration still points to an older version. Close Excel and run the installer again.
 - **`Failed to get chromedriver.exe ...`**: the driver download failed. See [Drivers](#drivers).
+- **`TimeoutError: The driver failed to open the listening port`** with 2.0.9 or 3.0 to 3.2.0 after Windows update KB5127936: fixed in 3.2.1, which checks the driver by connecting to it instead of reading the TCP table.
 - To collect a diagnostic log, create an empty file `%LOCALAPPDATA%\SeleniumBasic\debug.log` and reproduce the error.
 
-Tested with Chrome and Edge 156 to 158, VBA in 64-bit Excel (Microsoft 365) and VBScript 32/64-bit. Not tested yet: Firefox, 32-bit Office. Reports are welcome in [Issues](https://github.com/naesesang/SeleniumBasic/issues).
+Tested with Chrome and Edge 156 to 158, VBA in 64-bit Excel (Microsoft 365) and VBScript 32/64-bit. Firefox starts, but its commands are not fully tested. Not tested yet: 32-bit Office. Reports are welcome in [Issues](https://github.com/naesesang/SeleniumBasic/issues).
 
 This project is provided as is, without warranty or guaranteed support.
 
@@ -208,7 +209,7 @@ driver.PrintToPDF "C:\Temp\page.pdf"
 ### 설치
 
 1. 엑셀과 Selenium을 쓰는 프로그램을 모두 닫습니다.
-2. [Releases](https://github.com/naesesang/SeleniumBasic/releases/latest)에서 `SeleniumBasic-3.2.0.0.exe`를 받아 실행합니다. 관리자 권한은 필요 없고, 기존 2.0.9나 3.x는 자동으로 교체됩니다.
+2. [Releases](https://github.com/naesesang/SeleniumBasic/releases/latest)에서 `SeleniumBasic-3.2.1.0.exe`를 받아 실행합니다. 관리자 권한은 필요 없고, 기존 2.0.9나 3.x는 자동으로 교체됩니다.
 3. 코드 서명이 없어 SmartScreen 경고가 뜰 수 있습니다. "추가 정보" > "실행"을 누르세요. 스마트 앱 컨트롤이 켜진 PC에서는 이 선택지 없이 차단됩니다.
 
 필요 환경: Windows 10/11 (.NET Framework 4.8 기본 포함), Chrome 또는 Edge, 처음 실행할 때 인터넷 연결.
@@ -217,6 +218,7 @@ driver.PrintToPDF "C:\Temp\page.pdf"
 
 - **회사망 등에서 드라이버 다운로드가 막히는 경우:** 브라우저 버전에 맞는 `chromedriver.exe`(또는 `msedgedriver.exe`)를 직접 받아 `%LOCALAPPDATA%\SeleniumBasic` 폴더의 `Selenium.dll` 옆에 넣으세요.
 - **런타임 오류 8013101B / 80131040:** 엑셀을 닫고 설치 파일을 다시 실행하세요.
+- **`Start`에서 `TimeoutError: The driver failed to open the listening port`:** Windows 업데이트 KB5127936 이후 2.0.9와 3.0~3.2.0에서 나던 오류로, 3.2.1에서 해결했습니다.
 - 오류 기록이 필요하면 `%LOCALAPPDATA%\SeleniumBasic\debug.log` 빈 파일을 만든 뒤 오류를 재현하세요.
 
 문의와 버그 제보는 [Issues](https://github.com/naesesang/SeleniumBasic/issues)에 남겨 주세요. 별도의 지원을 보장하지 않으며 있는 그대로 제공됩니다.

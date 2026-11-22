@@ -1,4 +1,4 @@
-# SeleniumBasic 3.2 명령어 설명서
+# SeleniumBasic 3.2 명령어 설명서 (3.2.1 기준)
 
 VBA(Excel, Access, Word)와 VBScript에서 쓸 수 있는 SeleniumBasic의 명령을 객체별로 정리한 설명서입니다.
 3.1과 3.2에서 추가된 명령에는 **3.1**, **3.2** 표시를 붙였습니다.
@@ -784,7 +784,7 @@ VBScript에서 여러 객체를 한 번에 만들 때 씁니다. 속성으로 `B
 | `ElementNotVisibleError` | 요소가 보이지 않거나 가려져 있습니다. `ScrollIntoView`나 `WaitDisplayed`를 먼저 쓰세요. |
 | `ElementClickInterceptedError` | 다른 요소(팝업 등)가 가리고 있습니다. |
 | `StaleElementReferenceError` | 페이지가 바뀌어 예전에 찾은 요소가 사라졌습니다. 다시 찾으세요. |
-| `TimeoutError` | 기다리는 시간이 지났습니다. |
+| `TimeoutError` | 기다리는 시간이 지났습니다. `Start`에서 "failed to open the listening port"라고 나오면 3.2.1 이상으로 업데이트하세요(Windows 업데이트 KB5127936 문제). |
 | `Failed to get chromedriver.exe ...` | 드라이버를 내려받지 못했습니다. [README](../README.md#drivers)의 직접 넣는 방법을 보세요. |
 | 런타임 오류 `8013101B` / `80131040` | 예전 버전 등록이 남아 있습니다. 엑셀을 닫고 설치 파일을 다시 실행하세요. |
 

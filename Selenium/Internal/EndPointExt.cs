@@ -60,112 +60,63 @@ namespace Selenium.Internal {
         }
 
         /// <summary>
-        /// Returns true if a given host:port is connectable, false otherwise
+        /// Waits for a local port to accept connections.
         /// </summary>
-        /// <param name="endPoint">Endpoint holding the host ip and port</param>
-        /// <param name="timeout">Timeout in millisecond</param>
-        /// <param name="delay">Delay to retry in millisecond</param>
-        /// <returns>True if succeed, false otherwise</returns>
-        public bool WaitForConnectable(int timeout, int delay) {
-            _socket.Close();
+        /// <remarks>
+        /// The readiness is checked by connecting to the port. The former check read the TCP table
+        /// (GetTcpTable) and waited for the LISTEN state, which some Windows builds (KB5127936)
+        /// reported as 0, so Start failed after 10s although the driver was running.
+        /// </remarks>
+        /// <param name="timeout">Timeout in milliseconds</param>
+        /// <param name="delay">Time to wait in milliseconds before checking again</param>
+        /// <param name="hasExited">Optional - Returns true when the process that should listen has exited, to fail at once</param>
+        /// <returns>True when the port accepts connections, false after the timeout</returns>
+        public bool WaitForListening(int timeout, int delay, Func<bool> hasExited = null) {
+            // Release the port reserved for the driver
+            if (_socket != null) {
+                _socket.Close();
+                _socket = null;
+            }
 
-            var endtime = DateTime.UtcNow.AddMilliseconds(timeout);
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            socket.ReceiveTimeout = socket.SendTimeout = 1;
-            socket.NoDelay = true;
-            try {
-                while (true) {
-                    try {
-                        socket.Connect(_ipEndPoint);
-                        return true;
-                    } catch (SocketException) {
-                    } catch (Exception ex) {
-                        throw new SeleniumException(ex);
-                    }
-
-                    if (DateTime.UtcNow > endtime)
-                        return false;
-                    SysWaiter.Wait(delay);
-                }
-            } finally {
-                socket.Disconnect(false);
-                socket.Close(0);
+            DateTime endtime = DateTime.UtcNow.AddMilliseconds(timeout);
+            while (true) {
+                // Windows reports a refused loopback connection after about 1s (SYN retries):
+                // a short attempt keeps the polling frequent
+                if (TryConnect(_ipEndPoint, 250))
+                    return true;
+                if (hasExited != null && hasExited())
+                    return false;
+                if (DateTime.UtcNow > endtime)
+                    return false;
+                SysWaiter.Wait(delay);
             }
         }
 
         /// <summary>
-        /// Waits for a local port to be listening on the Loopback or Any address.
+        /// Returns true when a TCP connection to the end point succeeds within the timeout.
         /// </summary>
-        /// <param name="port">Port number</param>
-        /// <param name="timeout">Timeout in milliseconds</param>
-        /// <param name="delay">Time to wait in milliseconds to wait before checking again</param>
-        /// <returns></returns>
-        public bool WaitForListening(int timeout, int delay) {
-            _socket.Close();
-
-            DateTime endtime = DateTime.UtcNow.AddMilliseconds(timeout);
-            int portLE = _ipEndPoint.Port;
-            int portBE = (portLE & 0xFF) << 8 | (portLE & 0xFF00) >> 8;  //Convert port to big endian
-
-            int bufferSize = 1024;
-            IntPtr buffer = Marshal.AllocHGlobal(bufferSize);
-            int[] tcpTable = new int[bufferSize / sizeof(int)];
-            try {
-                while (true) {
-                    int result = 0;
-                    while (122 == (result = Native.GetTcpTable(buffer, ref bufferSize, false))) {
-                        Marshal.FreeHGlobal(buffer);
-                        buffer = Marshal.AllocHGlobal(bufferSize);
-                        tcpTable = new int[bufferSize / sizeof(int)];
-                    }
-                    if (result != 0)
-                        throw new NetworkInformationException(result);
-
-                    // Buffer MIB_TCPTABLE :
-                    // int dwNumEntries 
-                    // int dwState      //MIB_TCPROW entry 1
-                    // int dwLocalAddr
-                    // int dwLocalPort
-                    // int dwRemoteAddr
-                    // int dwRemotePort
-                    // int dwState      //MIB_TCPROW entry 2
-                    // ...
-
-                    Marshal.Copy(buffer, tcpTable, 0, bufferSize / sizeof(int));
-                    int dwNumEntries = tcpTable[0];
-                    int tcpTableLength = 1 + dwNumEntries * 5;
-
-                    //loop over each entry to find the port (1 entry is 5 integers)
-                    for (int i = 3; i < tcpTableLength; i += 5) {
-                        int dwLocalPort = tcpTable[i];
-                        if (dwLocalPort == portBE) {
-                            int dwLocalAddr = tcpTable[i - 1];
-                            if (dwLocalAddr == 0 || dwLocalAddr == 0x0100007f) { //Any or Loopback
-                                int dwState = tcpTable[i - 2];
-                                if (dwState == 2) // 2=listening
-                                    return true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (DateTime.UtcNow > endtime)
+        private static bool TryConnect(IPEndPoint endPoint, int timeout) {
+            // A socket that failed to connect cannot be reused: create one per attempt
+            using (var socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)) {
+                socket.NoDelay = true;
+                try {
+                    IAsyncResult result = socket.BeginConnect(endPoint, null, null);
+                    if (!result.AsyncWaitHandle.WaitOne(timeout))
                         return false;
-
-                    SysWaiter.Wait(delay);
+                    socket.EndConnect(result);
+                    socket.Shutdown(SocketShutdown.Both);
+                    return true;
+                } catch (SocketException) {
+                    return false;
+                } catch (ObjectDisposedException) {
+                    return false;
                 }
-            } finally {
-                Marshal.FreeHGlobal(buffer);
             }
         }
 
         static class Native {
 
-            const string IPHLPAPI = "Iphlpapi.dll";
             const string KERNEL32 = "kernel32.dll";
-
-            [DllImport(IPHLPAPI)]
-            internal extern static int GetTcpTable(IntPtr pTcpTable, ref int dwOutBufLen, bool order);
 
             [DllImport(KERNEL32)]
             internal static extern bool SetHandleInformation(IntPtr hObject, int dwMask, int dwFlags);
