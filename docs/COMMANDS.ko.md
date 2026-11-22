@@ -1,4 +1,4 @@
-# SeleniumBasic 3.2 명령어 설명서 (3.2.1 기준)
+# SeleniumBasic 3.2 명령어 설명서 (3.2.2 기준)
 
 VBA(Excel, Access, Word)와 VBScript에서 쓸 수 있는 SeleniumBasic의 명령을 객체별로 정리한 설명서입니다.
 3.1과 3.2에서 추가된 명령에는 **3.1**, **3.2** 표시를 붙였습니다.
@@ -79,6 +79,7 @@ End Sub
   driver.PrintToPDF "C:\a.pdf", paperSize:="A4"
   ```
 - **브라우저 설정 명령**(`SetHeadless` 등, **3.2**)은 `Start` **전에** 호출해야 합니다.
+- **매크로 멈추기:** SeleniumBasic이 기다리는 동안(`Wait`, 요소 찾기, 페이지 로딩, `WaitFor...` 등) **Ctrl+Pause**(Ctrl+Break)를 누르면 `KeyboardInterruptError` 오류로 멈춥니다. 3.2.2부터 Esc로는 멈추지 않습니다. 엑셀 자체는 VBA 명령 사이에서 Esc와 Ctrl+Break 모두로 매크로를 멈춥니다.
 
 ---
 

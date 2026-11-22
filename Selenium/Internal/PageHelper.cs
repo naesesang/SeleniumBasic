@@ -43,7 +43,7 @@ namespace Selenium.Internal {
                 // Content can arrive late: check twice before concluding the end is reached
                 int newHeight = height;
                 for (int attempt = 0; attempt < 2 && newHeight == height; attempt++) {
-                    Thread.Sleep(pause);
+                    SysWaiter.Wait(pause);    // Ctrl+Pause interrupts the wait
                     newHeight = Convert.ToInt32(session.javascript.Execute(script, args, false));
                 }
                 if (newHeight <= height)
@@ -115,7 +115,7 @@ namespace Selenium.Internal {
             while (!condition()) {
                 if (DateTime.UtcNow > endTime)
                     throw new Errors.TimeoutError("Timed out after {0} ms waiting for {1}.", timeout, what);
-                Thread.Sleep(100);
+                SysWaiter.Wait(100);    // Ctrl+Pause interrupts the wait
             }
         }
 

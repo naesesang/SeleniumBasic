@@ -20,7 +20,7 @@ namespace Selenium.Core {
         const int MOD_WIN = 0x08;
 
         //Virtual key codes
-        const int VK_ESCAPE = 0x1B;
+        const int VK_CANCEL = 0x03;
         const int VK_PAUSE = 0x13;
 
         static readonly EventWaitHandle _signal_interrupt = null;
@@ -42,7 +42,11 @@ namespace Selenium.Core {
                                                     out createdNew,
                                                     security);
 
-            HotKeyGlobal.DefineHotKey(MOD_NONE, VK_ESCAPE, ProcInterrupt);
+            // Ctrl+Pause (Ctrl+Break) interrupts a wait, like it interrupts VBA. Escape is no longer
+            // used: as a global hot key it was taken from every application while Selenium waited.
+            // With Control held, the Pause key sends VK_CANCEL; VK_PAUSE covers the other keyboards.
+            HotKeyGlobal.DefineHotKey(MOD_CONTROL, VK_CANCEL, ProcInterrupt);
+            HotKeyGlobal.DefineHotKey(MOD_CONTROL, VK_PAUSE, ProcInterrupt);
         }
 
         public static Action OnInterrupt {

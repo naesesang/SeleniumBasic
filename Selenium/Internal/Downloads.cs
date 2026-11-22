@@ -89,7 +89,7 @@ namespace Selenium.Internal {
                         "No download of \"{0}\" completed in {1} within {2} seconds."
                         , pattern, folder, timeout / 1000);
                 }
-                System.Threading.Thread.Sleep(250);
+                Core.SysWaiter.Wait(250);    // Ctrl+Pause interrupts the wait
             }
         }
 

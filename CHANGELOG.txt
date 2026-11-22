@@ -16,6 +16,15 @@ Third party softwares:
  https://github.com/mozilla/geckodriver
 
 
+v3.2.2.0  (2026/11/22)
+===============================================================================
+ * The waits are interrupted with Ctrl+Pause (Ctrl+Break) instead of Escape, which
+   raises KeyboardInterruptError as before. As a global hot key, Escape was taken
+   from every application while SeleniumBasic waited.
+ * WaitForNetworkIdle, WaitForDomIdle, WaitForJQueryIdle, ScrollUntilEnd and
+   WaitForDownload can now be interrupted too.
+
+
 v3.2.1.0  (2026/11/22)
 ===============================================================================
  * Fixed Start failing with "TimeoutError: The driver failed to open the listening
